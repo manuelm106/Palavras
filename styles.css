@@ -227,3 +227,5 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
 .signed-in img { border-radius: 50%; }
 .signed-in .muted { margin: 0; }
 [hidden] { display: none !important; }
+.suggestion-chip { margin: 2px 4px 2px 0; padding: 2px 10px; }
+.suggestion-chip:hover { border-color: var(--primary); color: var(--primary); }

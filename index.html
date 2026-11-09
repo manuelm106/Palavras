@@ -48,6 +48,7 @@
 
         <label for="meaning">Significado <span class="optional">(opcional)</span></label>
         <input id="meaning" name="meaning" type="text" placeholder="ej.: nostalgia, extrañar">
+        <p id="meaning-suggestions" class="suggestion" aria-live="polite" hidden></p>
 
         <label for="example">Tu propio ejemplo <span class="optional">(opcional)</span></label>
         <input id="example" name="example" type="text" lang="pt-BR" placeholder="ej.: Estou com saudade de você.">
@@ -96,6 +97,7 @@
   <script src="js/classifier.js"></script>
   <script src="js/examples.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/translate.js"></script>
   <script src="js/firebase-config.js"></script>
   <script type="module" src="js/sync.js"></script>
 </body>
