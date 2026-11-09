@@ -578,10 +578,14 @@ function renderFriends () {
   }))
 }
 
+// Lo compartido antes de esta versión guardó el título en español.
+const KIND_PT = { 'Motivación': 'Motivação', 'Chiste': 'Piada', 'Expresión': 'Expressão', 'Consejo': 'Dica', 'Curiosidad de Brasil': 'Curiosidade do Brasil' }
+function kindPt (kind) { return KIND_PT[kind] || kind || 'Frase' }
+
 function postBody (p) {
   if (p.type === 'phrase') {
     return el('div', { class: 'post-body' }, [
-      el('div', { class: 'quote-kind', text: (p.icon || '') + ' ' + (p.kind || 'Frase') }),
+      el('div', { class: 'quote-kind', text: (p.icon || '') + ' ' + kindPt(p.kind) }),
       el('div', { class: 'quote-pt', lang: 'pt-BR', text: p.pt || '' }),
       el('div', { class: 'quote-es', text: p.es || '' })
     ])

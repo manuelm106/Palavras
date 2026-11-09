@@ -7,11 +7,11 @@
   'use strict'
 
   var KINDS = {
-    motivacao: { icon: '💪', label: 'Motivación' },
-    piada: { icon: '😄', label: 'Chiste' },
-    expressao: { icon: '🗣️', label: 'Expresión' },
-    dica: { icon: '💡', label: 'Consejo' },
-    curiosidade: { icon: '🇧🇷', label: 'Curiosidad de Brasil' }
+    motivacao: { icon: '💪', label: 'Motivação' },
+    piada: { icon: '😄', label: 'Piada' },
+    expressao: { icon: '🗣️', label: 'Expressão' },
+    dica: { icon: '💡', label: 'Dica' },
+    curiosidade: { icon: '🇧🇷', label: 'Curiosidade do Brasil' }
   }
 
   var LIST = [
