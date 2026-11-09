@@ -26,20 +26,25 @@
   var $ = function (id) { return document.getElementById(id) }
 
   // ---------- Pestañas ----------
+  var TABS = ['words', 'challenge', 'friends']
   function showTab (name) {
-    var challenge = name === 'challenge'
-    $('view-words').hidden = challenge
-    $('view-challenge').hidden = !challenge
-    $('tab-words').setAttribute('aria-selected', String(!challenge))
-    $('tab-challenge').setAttribute('aria-selected', String(challenge))
+    if (TABS.indexOf(name) === -1 || !$('tab-' + name) || $('tab-' + name).hidden) name = 'words'
+    TABS.forEach(function (t) {
+      if (!$('tab-' + t)) return
+      $('view-' + t).hidden = t !== name
+      $('tab-' + t).setAttribute('aria-selected', String(t === name))
+    })
     try { localStorage.setItem(TAB_KEY, name) } catch (e) {}
-    if (challenge) {
+    window.dispatchEvent(new CustomEvent('palavras-tab', { detail: name }))
+    if (name === 'challenge') {
       renderScores()
       if (!current || !findWord(current.id)) nextRound()
     }
   }
-  $('tab-words').addEventListener('click', function () { showTab('words') })
-  $('tab-challenge').addEventListener('click', function () { showTab('challenge') })
+  TABS.forEach(function (t) {
+    if ($('tab-' + t)) $('tab-' + t).addEventListener('click', function () { showTab(t) })
+  })
+  window.PalavrasTabs = { show: showTab }
 
   // ---------- Estado local (racha) ----------
   var local = { streak: 0, best: 0, lastId: null }
@@ -359,5 +364,7 @@
 
   var saved = null
   try { saved = localStorage.getItem(TAB_KEY) } catch (e) {}
+  // La pestaña de amigos aparece recién al iniciar sesión; se abre después desde social.js.
+  window.PalavrasTabs.saved = saved
   showTab(saved === 'challenge' ? 'challenge' : 'words')
 })()

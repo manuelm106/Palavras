@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // Lista privada de cada usuario (palabras, puntajes y foto).
+    match /users/{uid} {
+      allow read, write: if isMe(uid);
+    }
+    // Formato anterior: solo para la migración automática.
+    match /users/{uid}/words/{wordId} {
+      allow read, write: if isMe(uid);
+    }
+
+    // Nombre y foto que ven los demás. Se leen de a uno (no se pueden listar).
+    match /profiles/{uid} {
+      allow get: if signedIn();
+      allow write: if isMe(uid);
+    }
+
+    // Correo → uid, para agregar amigos con el correo exacto (no se pueden listar).
+    match /emails/{email} {
+      allow get: if signedIn();
+      allow create, update: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        && request.auth.token.email != null
+        && email == request.auth.token.email.lower();
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // Amistades: un documento por pareja, con id "uidMenor_uidMayor".
+    match /friendships/{id} {
+      allow read: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['members', 'requestedBy', 'status', 'createdAt'])
+        && request.resource.data.requestedBy == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.members.size() == 2
+        && request.auth.uid in request.resource.data.members
+        && request.resource.data.members[0] < request.resource.data.members[1]
+        && id == request.resource.data.members[0] + '_' + request.resource.data.members[1];
+      // Solo quien recibió la solicitud puede aceptarla.
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.members
+        && request.auth.uid != resource.data.requestedBy
+        && resource.data.status == 'pending'
+        && request.resource.data.status == 'accepted'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'acceptedAt']);
+      // Cualquiera de los dos puede rechazar, cancelar o terminar la amistad.
+      allow delete: if signedIn() && request.auth.uid in resource.data.members;
+    }
+
+    // Palabras y frases compartidas: las ve el autor y los amigos de `audience`.
+    match /posts/{postId} {
+      allow read: if signedIn()
+        && (resource.data.owner == request.auth.uid || request.auth.uid in resource.data.audience);
+      allow create: if signedIn()
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.audience is list
+        && request.resource.data.audience.size() <= 500
+        && request.resource.data.likes == {};
+      allow delete: if signedIn() && resource.data.owner == request.auth.uid;
+      // Los amigos solo pueden poner o quitar SU propio like.
+      allow update: if signedIn()
+        && request.auth.uid in resource.data.audience
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+        && request.resource.data.likes.diff(resource.data.likes).affectedKeys().hasOnly([request.auth.uid]);
+    }
+  }
+}

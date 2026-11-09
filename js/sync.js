@@ -44,6 +44,10 @@ async function init () {
   const a = auth.getAuth(fbApp)
   const db = fs.getFirestore(fbApp)
 
+  // Para otros módulos (amigos y compartir: js/social.js).
+  const cloud = window.PalavrasCloud = { fs, db, user: null, profile: null }
+  window.dispatchEvent(new CustomEvent('palavras-cloud', { detail: cloud }))
+
   let uid = null
   let ref = null
   let ready = false // true cuando ya llegó la primera versión de la nube
@@ -204,6 +208,7 @@ async function init () {
     } else {
       setStatus('Sincronizado ✔')
     }
+    publishProfile()
     if (migrated) console.info(`Migradas ${migrated} palabras al formato nuevo.`)
   }
 
@@ -260,6 +265,31 @@ async function init () {
     }
   }
 
+  // ---------- Perfil público (nombre y foto) para los amigos ----------
+  // profiles/{uid}: lo que ven tus amigos. emails/{correo}: permite encontrarte por tu correo exacto.
+  const PUBLIC_CACHE = 'palabras-pt:perfil-publico'
+  async function publishProfile () {
+    const user = currentUser
+    if (!user || !ready || user.uid !== uid) return
+    let avatar
+    if (profile && (profile.type === 'photo' || profile.type === 'emoji') && profile.value) avatar = { type: profile.type, value: profile.value }
+    else avatar = user.photoURL ? { type: 'url', value: user.photoURL } : null
+    const payload = { name: user.displayName || (user.email || '').split('@')[0] || 'Usuario', avatar, updatedAt: Date.now() }
+    const email = (user.email || '').trim().toLowerCase()
+    const key = JSON.stringify({ uid: user.uid, name: payload.name, avatar, email })
+    let cached = null
+    try { cached = localStorage.getItem(PUBLIC_CACHE) } catch (e) {}
+    if (cached === key) return // nada cambió: no gastar escrituras
+    try {
+      await fs.setDoc(fs.doc(db, 'profiles', user.uid), payload)
+      if (email) await fs.setDoc(fs.doc(db, 'emails', email), { uid: user.uid })
+      try { localStorage.setItem(PUBLIC_CACHE, key) } catch (e) {}
+    } catch (err) {
+      console.warn('No se pudo publicar el perfil:', err.code || err)
+    }
+  }
+  window.addEventListener('palavras-profile', () => { publishProfile() })
+
   // ---------- Sesión y escucha de cambios ----------
   auth.onAuthStateChanged(a, (user) => {
     if (unsubscribe) { unsubscribe(); unsubscribe = null }
@@ -270,6 +300,8 @@ async function init () {
     ready = false
     synced = new Map()
     renderUser(user)
+    cloud.user = user
+    window.dispatchEvent(new CustomEvent('palavras-user', { detail: user }))
     if (!user) return
 
     setStatus('Cargando tu lista…')
@@ -334,7 +366,10 @@ function renderUser (user) {
 }
 
 function setProfile (p) {
+  const changed = JSON.stringify(profile || null) !== JSON.stringify(p || null)
   profile = p || null
+  if (window.PalavrasCloud) window.PalavrasCloud.profile = profile
+  if (changed) window.dispatchEvent(new CustomEvent('palavras-profile', { detail: profile }))
   try {
     if (currentUser) localStorage.setItem(PROFILE_CACHE, JSON.stringify({ uid: currentUser.uid, profile }))
   } catch (e) { /* sin espacio */ }

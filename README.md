@@ -16,6 +16,7 @@ Una app web pequeña (HTML + CSS + JavaScript, sin dependencias) para armar tu p
 - **Exportar/importar** la lista en JSON. Todo se guarda en el `localStorage` del navegador.
 - **Foto de perfil**: tocando la foto junto al nombre se puede subir una foto propia, elegir un emoji o volver a la foto de la cuenta de Google. La foto se recorta y achica en el dispositivo (160×160 px, unos 5–15 KB) y se guarda junto con la lista, así que se ve en todos los dispositivos (no hace falta Firebase Storage).
 - **Frase al iniciar sesión**: debajo del nombre del usuario aparece una frase al azar en portugués, con su traducción: motivación, chiste, expresión, consejo (falsos amigos, pronunciación, cómo estudiar) o curiosidad de Brasil. Cambia cada vez que se abre la app, no repite las últimas y se puede escuchar o pedir otra.
+- **Amigos** (pestaña 👥, con la sesión iniciada): se agrega a otra persona escribiendo su correo exacto; le llega una solicitud que puede aceptar o rechazar. Con el botón 📤 se comparte una palabra (con significado, categoría y el ejemplo que se ve) o la frase del día. Los amigos la ven en **Novedades**, pueden darle ❤️ y agregar la palabra a su propia lista. En «Lo que compartí» se ve quién dio like y se puede dejar de compartir. Solo los amigos ven lo compartido; la lista completa sigue siendo privada.
 - **Sincronización opcional** entre dispositivos: inicias sesión con Google y ves la misma lista en el celular y en la computadora (usa Firebase; ver abajo). La configuración de notificaciones sigue siendo de cada dispositivo.
 
 ## Cómo usarla
@@ -36,22 +37,7 @@ Mientras `js/firebase-config.js` tenga `window.FIREBASE_CONFIG = null`, la app f
 1. Crear un proyecto en https://console.firebase.google.com (Google Analytics no hace falta).
 2. **Authentication → Comenzar → Método de acceso → Google** → habilitar y guardar.
 3. **Authentication → Configuración → Dominios autorizados** → agregar `manuelm106.github.io`.
-4. **Firestore Database → Crear base de datos** (modo producción, ID `(default)`) y, en **Reglas**, pegar:
-
-   ```
-   rules_version = '2';
-   service cloud.firestore {
-     match /databases/{database}/documents {
-       match /users/{uid} {
-         allow read, write: if request.auth != null && request.auth.uid == uid;
-       }
-       // Formato anterior (una palabra por documento): solo para la migración automática.
-       match /users/{uid}/words/{wordId} {
-         allow read, write: if request.auth != null && request.auth.uid == uid;
-       }
-     }
-   }
-   ```
+4. **Firestore Database → Crear base de datos** (modo producción, ID `(default)`) y, en **Reglas**, pegar el contenido de [`firestore.rules`](firestore.rules) y publicar. (En el celular, el editor de reglas solo aparece pidiendo la versión de escritorio del sitio.)
 
 5. **Configuración del proyecto → Tus apps → Web (`</>`)** → registrar la app y copiar el objeto `firebaseConfig` en `js/firebase-config.js`:
 
@@ -59,7 +45,15 @@ Mientras `js/firebase-config.js` tenga `window.FIREBASE_CONFIG = null`, la app f
    window.FIREBASE_CONFIG = { apiKey: '…', authDomain: '…', projectId: '…', storageBucket: '…', messagingSenderId: '…', appId: '…' }
    ```
 
-Estos datos de configuración no son secretos; lo que protege la lista son las reglas del paso 4: cada usuario solo puede leer y escribir su propio documento (`users/{uid}`).
+Estos datos de configuración no son secretos; lo que protege los datos son las reglas del paso 4:
+
+- `users/{uid}`: la lista de cada usuario; solo la lee y escribe su dueño.
+- `profiles/{uid}`: nombre y foto públicos; cualquiera con sesión puede leer uno, pero no listarlos.
+- `emails/{correo}`: correo → uid, para agregar amigos; solo se consulta con el correo exacto y cada uno solo registra el suyo.
+- `friendships/{uidA_uidB}`: solicitudes y amistades; solo las ven los dos miembros y solo quien recibe la solicitud puede aceptarla.
+- `posts/{id}`: lo compartido; lo ven el autor y los amigos de `audience`; los amigos solo pueden poner o quitar su propio like.
+
+Las reglas están probadas con el emulador de Firestore (43 casos de acceso permitido y denegado).
 
 **Cómo se guarda:** toda la lista de cada usuario está en un solo documento, `users/{uid}`, con el campo `words` (un mapa `id → palabra`) y el campo `profile` (la foto de perfil). Así, abrir la app cuesta 1 lectura y cada cambio 1 escritura; los cambios seguidos (por ejemplo, las dos respuestas de una ronda del desafío) se agrupan en una sola escritura. El contador de notificaciones no se sincroniza (es de cada dispositivo). Un documento admite hasta 1 MiB: alcanza para unas 3.000 palabras con ejemplos; si se supera, la app lo avisa. Las listas guardadas con la versión anterior (`users/{uid}/words/{id}`) se migran solas al iniciar sesión.
 
@@ -84,6 +78,8 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 | `js/examples.js` | Generador de ejemplos de uso |
 | `js/app.js` | Estado, formulario, lista, notificaciones |
 | `js/phrases.js` | Frases de motivación, chistes, expresiones, consejos y curiosidades de Brasil |
+| `js/social.js` | Amigos, publicaciones compartidas y likes |
+| `firestore.rules` | Reglas de seguridad de Firestore |
 | `js/challenge.js` | Modo desafío y puntajes |
 | `js/translate.js` | Sugerencias de significado (MyMemory, con Apertium de respaldo) |
 | `js/firebase-config.js` | Configuración de Firebase (opcional) |

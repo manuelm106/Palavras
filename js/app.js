@@ -286,6 +286,16 @@
           el('button', { type: 'button', class: 'icon-btn', title: 'Escuchar', 'aria-label': 'Escuchar ' + w.word, onclick: function () { speak(w.word) } }, ['🔊']),
           el('button', {
             type: 'button',
+            class: 'icon-btn share-btn',
+            title: 'Compartir con mis amigos',
+            'aria-label': 'Compartir ' + w.word + ' con mis amigos',
+            onclick: function () {
+              if (window.PalavrasSocial) window.PalavrasSocial.shareWord(w, exampleBox.textContent)
+              else toast('Inicia sesión con Google para compartir con tus amigos.', 'info')
+            }
+          }, ['📤']),
+          el('button', {
+            type: 'button',
             class: 'icon-btn danger',
             title: 'Borrar',
             'aria-label': 'Borrar ' + w.word,
@@ -597,7 +607,28 @@
     toast: toast,
     save: save,
     speak: speak,
-    categories: CATS
+    categories: CATS,
+    highlight: highlight,
+    // Agrega una palabra (por ejemplo, compartida por un amigo). Devuelve false si ya estaba.
+    addWord: function (data) {
+      var key = Classifier.normalize(data.word)
+      if (!key) return false
+      if (state.words.some(function (w) { return Classifier.normalize(w.word) === key })) return false
+      var category = CATS[data.category] ? data.category : Classifier.classify(data.word).category
+      var entry = {
+        id: uid(),
+        word: String(data.word).trim(),
+        category: category,
+        autoCategory: category,
+        meaning: data.meaning ? String(data.meaning) : '',
+        examples: (data.examples || []).filter(Boolean).map(String),
+        createdAt: Date.now()
+      }
+      state.words.unshift(entry)
+      save()
+      render()
+      return entry
+    }
   }
 
   // ---------- Inicio ----------

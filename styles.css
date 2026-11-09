@@ -335,3 +335,47 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
 .score-table th:first-child, .score-table td:first-child { text-align: left; }
 .hard-list { margin: 0 0 8px; padding-left: 20px; font-size: .9rem; }
 .ch-result.warn { background: color-mix(in srgb, var(--c-adverbio) 16%, transparent); }
+
+/* ---------- Amigos ---------- */
+.badge-count {
+  display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px;
+  border-radius: 999px; background: var(--danger); color: #fff; font-size: .72rem; font-weight: 700;
+}
+.friends-layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: 20px; padding-top: 16px; padding-bottom: 48px; align-items: start;
+}
+@media (max-width: 800px) { .friends-layout { grid-template-columns: minmax(0, 1fr); } }
+.friends-signin { margin-top: 16px; }
+.friend-form { display: flex; gap: 6px; }
+.friend-form input { flex: 1; min-width: 0; }
+.people { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; }
+.person { display: flex; align-items: center; gap: 8px; }
+.person-name { flex: 1; min-width: 0; overflow-wrap: anywhere; font-weight: 600; }
+.person-actions { display: flex; align-items: center; gap: 6px; }
+.primary-inline { background: var(--primary); color: var(--primary-ink); border-color: transparent; }
+.mini-avatar {
+  flex: none; border-radius: 50%; overflow: hidden; display: inline-grid; place-items: center;
+  background: var(--bg); border: 1px solid var(--border); line-height: 1;
+}
+.mini-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.mini-avatar.initial { background: var(--primary); color: var(--primary-ink); font-weight: 700; border-color: transparent; }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.post { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.post.compact { padding: 8px 10px; font-size: .92rem; }
+.post-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.post-head .muted { margin: 0; }
+.post-body { display: flex; flex-direction: column; gap: 3px; }
+.post-body .example { margin: 2px 0 0; }
+.post-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin-top: 8px; }
+.like-btn {
+  font: inherit; font-size: .88rem; font-weight: 600; cursor: pointer; border-radius: 999px;
+  padding: 3px 10px; background: var(--bg); color: var(--text); border: 1px solid var(--border);
+}
+.like-btn.liked { border-color: var(--danger); }
+.like-count { font-size: .85rem; color: var(--muted); }
+.tab { white-space: nowrap; }
+@media (max-width: 480px) {
+  .tabs { gap: 0; overflow-x: auto; scrollbar-width: none; }
+  .tab { padding: 8px 9px; font-size: .9rem; }
+}
