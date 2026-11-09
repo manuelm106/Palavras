@@ -1,6 +1,6 @@
 /*
  * Frases que se muestran debajo del nombre del usuario al iniciar sesión:
- * motivación, chistes, expresiones y consejos. Cada una en portugués (pt)
+ * motivación, chistes, expresiones, consejos y curiosidades de Brasil. Cada una en portugués (pt)
  * con su traducción o explicación en español (es).
  */
 (function (root) {
@@ -10,7 +10,8 @@
     motivacao: { icon: '💪', label: 'Motivación' },
     piada: { icon: '😄', label: 'Chiste' },
     expressao: { icon: '🗣️', label: 'Expresión' },
-    dica: { icon: '💡', label: 'Consejo' }
+    dica: { icon: '💡', label: 'Consejo' },
+    curiosidade: { icon: '🇧🇷', label: 'Curiosidad de Brasil' }
   }
 
   var LIST = [
@@ -62,7 +63,25 @@
     { kind: 'dica', pt: '«Ficar» é um verbo coringa: ficar feliz, ficar em casa, ficar pronto.', es: '«Ficar» es un verbo comodín: ponerse feliz, quedarse en casa, estar listo.' },
     { kind: 'dica', pt: 'Leia suas frases em voz alta: isso ajuda a fixar a pronúncia.', es: 'Lee tus frases en voz alta: ayuda a fijar la pronunciación.' },
     { kind: 'dica', pt: 'Cinco minutos de desafio por dia já fazem diferença.', es: 'Cinco minutos de desafío por día ya marcan la diferencia.' },
-    { kind: 'dica', pt: 'Escreva exemplos sobre a sua vida: assim as palavras grudam na memória.', es: 'Escribe ejemplos sobre tu vida: así las palabras se quedan en la memoria.' }
+    { kind: 'dica', pt: 'Escreva exemplos sobre a sua vida: assim as palavras grudam na memória.', es: 'Escribe ejemplos sobre tu vida: así las palabras se quedan en la memoria.' },
+
+    // Curiosidades de Brasil
+    { kind: 'curiosidade', pt: 'O nome «Brasil» vem do pau-brasil, uma árvore de madeira avermelhada, cor de brasa.', es: 'El nombre «Brasil» viene del palo brasil, un árbol de madera rojiza, color brasa.' },
+    { kind: 'curiosidade', pt: 'O Brasil é o maior país da América do Sul e o quinto maior do mundo em território.', es: 'Brasil es el país más grande de Sudamérica y el quinto del mundo en superficie.' },
+    { kind: 'curiosidade', pt: 'O Brasil faz fronteira com quase todos os países da América do Sul: só não com o Chile e o Equador.', es: 'Brasil limita con casi todos los países de Sudamérica: solo no con Chile ni Ecuador.' },
+    { kind: 'curiosidade', pt: 'O Brasil é o país com mais falantes de português do mundo: são mais de 200 milhões.', es: 'Brasil es el país con más hablantes de portugués del mundo: más de 200 millones.' },
+    { kind: 'curiosidade', pt: 'Brasília foi construída do zero e inaugurada em 1960. Antes, as capitais foram Salvador e o Rio de Janeiro.', es: 'Brasilia se construyó desde cero y se inauguró en 1960. Antes, las capitales fueron Salvador y Río de Janeiro.' },
+    { kind: 'curiosidade', pt: 'Entre 1808 e 1821, o Rio de Janeiro foi a sede da corte portuguesa, que fugiu de Napoleão.', es: 'Entre 1808 y 1821, Río de Janeiro fue la sede de la corte portuguesa, que huyó de Napoleón.' },
+    { kind: 'curiosidade', pt: 'As estrelas da bandeira mostram o céu do Rio de Janeiro na manhã de 15 de novembro de 1889, dia da Proclamação da República.', es: 'Las estrellas de la bandera muestran el cielo de Río la mañana del 15 de noviembre de 1889, día de la Proclamación de la República.' },
+    { kind: 'curiosidade', pt: 'O Brasil tem 26 estados e o Distrito Federal, onde fica Brasília.', es: 'Brasil tiene 26 estados y el Distrito Federal, donde está Brasilia.' },
+    { kind: 'curiosidade', pt: 'O Brasil tem quatro fusos horários, do arquipélago de Fernando de Noronha até o Acre.', es: 'Brasil tiene cuatro husos horarios, desde el archipiélago de Fernando de Noronha hasta Acre.' },
+    { kind: 'curiosidade', pt: 'A maior parte da Floresta Amazônica, a maior floresta tropical do mundo, fica no Brasil.', es: 'La mayor parte de la selva amazónica, la selva tropical más grande del mundo, está en Brasil.' },
+    { kind: 'curiosidade', pt: 'O Pantanal é uma das maiores áreas úmidas do planeta e um ótimo lugar para ver onças e jacarés.', es: 'El Pantanal es uno de los humedales más grandes del planeta y un gran lugar para ver jaguares y yacarés.' },
+    { kind: 'curiosidade', pt: 'O Brasil é o maior produtor de café do mundo há mais de 150 anos.', es: 'Brasil es el mayor productor de café del mundo desde hace más de 150 años.' },
+    { kind: 'curiosidade', pt: 'O Brasil é o único país pentacampeão da Copa do Mundo: 1958, 1962, 1970, 1994 e 2002.', es: 'Brasil es el único país que ganó cinco Mundiales: 1958, 1962, 1970, 1994 y 2002.' },
+    { kind: 'curiosidade', pt: 'O Brasil tem a maior comunidade de origem japonesa fora do Japão, principalmente em São Paulo.', es: 'Brasil tiene la mayor comunidad de origen japonés fuera de Japón, sobre todo en São Paulo.' },
+    { kind: 'curiosidade', pt: 'O Cristo Redentor foi eleito uma das Sete Novas Maravilhas do Mundo em 2007.', es: 'El Cristo Redentor fue elegido una de las Siete Nuevas Maravillas del Mundo en 2007.' },
+    { kind: 'curiosidade', pt: 'O Carnaval termina na Quarta-feira de Cinzas, e em muitos lugares o trabalho só recomeça ao meio-dia.', es: 'El Carnaval termina el Miércoles de Ceniza, y en muchos lugares el trabajo recién vuelve al mediodía.' }
   ]
 
   var RECENT_KEY = 'palabras-pt:frases-recientes'
