@@ -430,3 +430,22 @@ a.example-source:hover { color: var(--primary); text-decoration: underline; }
 .gender-wrap { display: inline-flex; align-self: center; }
 .gender-options { display: inline-flex; gap: 4px; flex-wrap: wrap; }
 .gender-badge.current { background: var(--bg); box-shadow: inset 0 0 0 1px currentColor; }
+/* Comparación de género con el español */
+.word-card.gender-different { border: 2px solid var(--c-adverbio); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-adverbio) 18%, transparent); }
+.gender-alert {
+  margin: 8px 0 4px; padding: 8px 12px; border-radius: 8px;
+  background: color-mix(in srgb, var(--c-adverbio) 16%, var(--surface));
+  border-left: 5px solid var(--c-adverbio); font-weight: 400;
+}
+.gender-alert-title { font-weight: 800; font-size: 1rem; color: var(--c-adverbio); text-transform: uppercase; letter-spacing: .02em; }
+.gender-alert-pair { margin-top: 2px; font-size: .95rem; }
+.gender-alert-pair strong { font-size: 1.05rem; }
+.ch-result .gender-alert { font-weight: 700; color: var(--text); }
+.gender-same { margin: 4px 0 0; font-size: .82rem; color: var(--c-verbo); font-weight: 600; }
+.gender-check { margin: 4px 0 0; font-size: .82rem; color: var(--muted); }
+.meaning-btn { font: inherit; font-size: .9rem; background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; text-align: left; }
+.meaning-btn:hover { color: var(--primary); text-decoration: underline; }
+.meaning-btn.empty { font-size: .8rem; color: var(--primary); font-weight: 600; }
+.chip[aria-pressed] { }
+@media print { .p-diff { font-size: 8.5pt; font-weight: 700; color: #b45309; margin-top: 1pt; } }
+.cat-genero { --c: var(--c-adverbio); }

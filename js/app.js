@@ -197,8 +197,11 @@
     var counts = { todas: state.words.length }
     Object.keys(CATS).forEach(function (k) { counts[k] = 0 })
     state.words.forEach(function (w) { counts[w.category] = (counts[w.category] || 0) + 1 })
-    ;['todas'].concat(Object.keys(CATS)).forEach(function (k) {
-      var label = k === 'todas' ? 'Todas' : CATS[k].label
+    counts.genero = state.words.filter(function (w) { var c = genderCompare(w); return c && c.status === 'different' }).length
+    var keys = ['todas'].concat(Object.keys(CATS))
+    if (counts.genero || filter === 'genero') keys.push('genero')
+    keys.forEach(function (k) {
+      var label = k === 'todas' ? 'Todas' : k === 'genero' ? '⚠️ Género distinto' : CATS[k].label
       box.appendChild(el('button', {
         type: 'button',
         class: 'chip' + (filter === k ? ' active' : '') + (k !== 'todas' ? ' cat-' + k : ''),
@@ -210,7 +213,7 @@
 
   function visibleWords () {
     return state.words.filter(function (w) {
-      if (filter !== 'todas' && w.category !== filter) return false
+      if (filter === 'genero') { var c = genderCompare(w); if (!c || c.status !== 'different') return false } else if (filter !== 'todas' && w.category !== filter) return false
       if (search && Classifier.normalize(w.word + ' ' + (w.meaning || '')).indexOf(search) === -1) return false
       return true
     })
@@ -289,6 +292,51 @@
     }, [GENDER_LABEL[info.g] + (info.sure ? '' : ' ?')])
     wrap.appendChild(badge)
     return wrap
+  }
+
+  // Compara el género con el español: { status: 'same' | 'different' | 'check' | 'unknown', pt, es }.
+  function genderCompare (w) {
+    if (w.category !== 'sustantivo' || !window.GenderES) return null
+    var pt = nounGender(w)
+    var r = window.GenderES.compare(w.word, pt.g, w.meaning)
+    var status = r.status
+    if (status === 'different' && !pt.sure) status = 'check' // el portugués no es seguro
+    return { status: status, pt: pt, es: r.es }
+  }
+
+  function genderNote (w) {
+    var c = genderCompare(w)
+    if (!c) return null
+    var esLabel = c.es ? GENDER_LABEL[c.es.g] : ''
+    if (c.status === 'different') {
+      return el('div', { class: 'gender-alert', role: 'note' }, [
+        el('div', { class: 'gender-alert-title', text: '⚠️ ¡OJO! Género distinto al español' }),
+        el('div', { class: 'gender-alert-pair' }, [
+          el('strong', { lang: 'pt-BR', text: c.pt.article + ' ' + w.word }),
+          ' (' + GENDER_LABEL[c.pt.g] + ')  ≠  ',
+          el('strong', { lang: 'es', text: c.es.article + ' ' + c.es.word }),
+          ' (' + esLabel + ')'
+        ])
+      ])
+    }
+    if (c.status === 'check') {
+      return el('p', { class: 'gender-check' }, ['¿Género distinto? En español es «' + c.es.article + ' ' + c.es.word + '» (' + esLabel + '). Confirma el género en portugués tocando la etiqueta.'])
+    }
+    if (c.status === 'same') {
+      return el('p', { class: 'gender-same' }, ['✓ Mismo género que en español: ' + c.es.article + ' ' + c.es.word])
+    }
+    return el('p', { class: 'gender-check' }, [w.meaning
+      ? 'Para comparar con el español, escribe el significado con artículo (ej.: «la leche»).'
+      : 'Agrega el significado para comparar el género con el español.'])
+  }
+
+  function editMeaning (w) {
+    var value = prompt('Significado de «' + w.word + '»' + (w.category === 'sustantivo' ? ' (con artículo, ej.: «la leche», para comparar el género)' : '') + ':', w.meaning || '')
+    if (value === null) return
+    w.meaning = value.trim()
+    save()
+    render()
+    highlight(w.id)
   }
 
   function renderItem (w) {
@@ -391,14 +439,20 @@
       ])
     ])
 
-    return el('li', { class: 'word-card', id: 'w-' + w.id }, [
+    var cmp = genderCompare(w)
+    return el('li', { class: 'word-card' + (cmp && cmp.status === 'different' ? ' gender-different' : ''), id: 'w-' + w.id }, [
       el('div', { class: 'card-head' }, [
         el('div', { class: 'word-title' }, [
           el('span', { class: 'dot cat-' + w.category, 'aria-hidden': 'true' }),
           w.category === 'sustantivo' ? el('span', { class: 'article', lang: 'pt-BR', text: nounGender(w).article }) : null,
           el('strong', { lang: 'pt-BR', text: w.word }),
           w.category === 'sustantivo' ? genderBadge(w) : null,
-          w.meaning ? el('span', { class: 'meaning', text: '— ' + w.meaning }) : null
+          el('button', {
+            type: 'button',
+            class: 'meaning meaning-btn' + (w.meaning ? '' : ' empty'),
+            title: 'Editar significado',
+            onclick: function () { editMeaning(w) }
+          }, [w.meaning ? '— ' + w.meaning : '+ significado'])
         ]),
         el('div', { class: 'card-actions' }, [
           select,
@@ -427,6 +481,7 @@
           }, ['🗑'])
         ])
       ]),
+      genderNote(w),
       el('div', { class: 'example-row' }, [
         exampleBox,
         otherBtn,
@@ -497,6 +552,10 @@
     // Sin ejemplo, la notificación invita a armar una frase.
     var example = item ? item.pt : '¿Cómo usarías «' + w.word + '» en una frase?'
     var translation = item && item.es ? item.es : ''
+    var gc = genderCompare(w)
+    if (gc && gc.status === 'different') {
+      translation = (translation ? translation + '\n' : '') + '⚠️ Ojo: ' + gc.pt.article + ' ' + w.word + ' (' + GENDER_LABEL[gc.pt.g] + ') ≠ ' + gc.es.article + ' ' + gc.es.word + ' (' + GENDER_LABEL[gc.es.g] + ')'
+    }
     state.shown[w.id] = (state.shown[w.id] || 0) + 1
     state.lastWordId = w.id
     saveLocal() // el contador no se sincroniza: ahorra escrituras en la nube
@@ -648,7 +707,13 @@
         var chosen = own[0] || stablePick(items, w.word) || null
         var example = chosen ? chosen.pt + (chosen.es ? ' — ' + chosen.es : '') : ''
         return el('tr', {}, [
-          el('td', { class: 'p-word', lang: 'pt-BR', text: (w.category === 'sustantivo' ? nounGender(w).article + ' ' : '') + w.word }),
+          el('td', { class: 'p-word', lang: 'pt-BR' }, (function () {
+            var gc = genderCompare(w)
+            return [
+              (w.category === 'sustantivo' ? nounGender(w).article + ' ' : '') + w.word,
+              gc && gc.status === 'different' ? el('div', { class: 'p-diff', text: '⚠ ≠ ' + gc.es.article + ' ' + gc.es.word }) : null
+            ]
+          })()),
           el('td', { text: w.meaning || '' }),
           el('td', { class: 'p-example', lang: 'pt-BR', text: example })
         ])
@@ -738,6 +803,8 @@
     categories: CATS,
     highlight: highlight,
     nounGender: nounGender,
+    genderCompare: genderCompare,
+    genderLabel: GENDER_LABEL,
     // Agrega una palabra (por ejemplo, compartida por un amigo). Devuelve false si ya estaba.
     addWord: function (data) {
       var key = Classifier.normalize(data.word)

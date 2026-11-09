@@ -169,12 +169,15 @@
     'final', 'açúcar', 'lugar', 'bar', 'colar', 'altar', 'olhar', 'jantar', 'almoço', 'lar', 'ar',
     'arroz', 'cartaz', 'nó', 'avô', 'pó', 'sofá', 'guaraná', 'maracujá', 'fubá', 'irmão', 'cupim',
     'motor', 'computador', 'amor', 'calor', 'sabor', 'valor', 'favor', 'humor', 'interior', 'exterior',
-    'elevador', 'tambor', 'leque', 'mel', 'anel', 'pastel', 'pincel', 'aluguel', 'cheiro', 'dia']
+    'elevador', 'tambor', 'leque', 'mel', 'anel', 'pastel', 'pincel', 'aluguel', 'cheiro', 'dia',
+    'costume', 'legume', 'cume', 'creme', 'alarme', 'fel', 'sal', 'samba', 'cheque', 'pente', 'perfume',
+    'volume', 'ciúme', 'queixume', 'estrume', 'cardume', 'lume', 'gume']
   // Femeninos frecuentes con terminaciones que no lo indican.
   var FEM_SURE = ['alface', 'atriz', 'imperatriz', 'cicatriz', 'matriz', 'perdiz', 'tv', 'mulher',
     'colher', 'avó', 'pá', 'fé', 'maré', 'chaminé', 'libido', 'catedral', 'vogal', 'espiral', 'cal',
     'tosse', 'neve', 'vontade', 'saudade', 'cidade', 'sede', 'rede', 'parede', 'árvore', 'nuvem', 'ordem',
-    'margem', 'garagem', 'viagem', 'imagem', 'mensagem', 'paisagem', 'coragem']
+    'margem', 'garagem', 'viagem', 'imagem', 'mensagem', 'paisagem', 'coragem', 'equipe', 'cárie',
+    'fraude', 'cútis', 'ponte', 'árvore', 'análise', 'tosse', 'dor', 'cor', 'grama', 'desordem']
   // Comunes de dos géneros (o/a estudante).
   var BOTH = ['estudante', 'cliente', 'parente', 'gerente', 'presidente', 'paciente', 'colega', 'jovem',
     'intérprete', 'agente', 'adolescente', 'imigrante', 'representante', 'atleta', 'cônjuge', 'chefe',

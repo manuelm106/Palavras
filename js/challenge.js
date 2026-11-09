@@ -213,6 +213,13 @@
     res.textContent = current.catOk
       ? '✔ ¡Correcto! Es un ' + CATS[w.category].label.toLowerCase() + '.'
       : '✘ No. «' + w.word + '» es ' + articleFor(w.category) + ' ' + CATS[w.category].label.toLowerCase() + '.'
+    var gc = app.genderCompare && app.genderCompare(w)
+    if (gc && gc.status === 'different') {
+      var alert = document.createElement('div')
+      alert.className = 'gender-alert'
+      alert.textContent = '⚠️ ¡OJO! ' + gc.pt.article + ' ' + w.word + ' es ' + app.genderLabel[gc.pt.g] + ', pero en español ' + gc.es.article + ' ' + gc.es.word + ' es ' + app.genderLabel[gc.es.g] + '.'
+      res.appendChild(alert)
+    }
     $('ch-step2').hidden = false
     $('ch-skip').textContent = 'Saltar la frase (cuenta como fallo)'
     $('ch-sentence').focus()
