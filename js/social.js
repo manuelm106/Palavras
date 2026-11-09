@@ -23,6 +23,11 @@ let unsubFriends = null
 let unsubFeed = null
 let unsubMine = null
 let knownIncoming = null
+let prevLikes = null // postId -> Set de uids, para avisar de likes nuevos
+let likesSeenAt = 0 // hasta cuándo ya se vieron los likes (para el número de la pestaña)
+let highlightSince = 0 // likes más nuevos que esto se marcan como «nuevo»
+const likesKey = () => 'palabras-pt:likes-vistos:' + (user ? user.uid : '')
+const likeTime = (v) => (typeof v === 'number' ? v : 0) // versiones anteriores guardaban `true`
 let tab = null
 
 const pairId = (a, b) => (a < b ? a + '_' + b : b + '_' + a)
@@ -42,12 +47,14 @@ function start () {
 // ---------- Sesión ----------
 function onUser (u) {
   if (unsubFriends) { unsubFriends(); unsubFriends = null }
+  if (unsubMine) { unsubMine(); unsubMine = null }
   stopFeed()
   user = u
   friendships = new Map()
   feed = []
   mine = []
   knownIncoming = null
+  prevLikes = null
   $('tab-friends').hidden = !u
   if (!u) {
     if (!$('view-friends').hidden) window.PalavrasTabs.show('words')
@@ -62,6 +69,20 @@ function onUser (u) {
     friendships.forEach((f) => loadProfile(otherOf(f)))
     renderAll()
   }, (err) => showError(err))
+
+  // Lo que compartí: se escucha siempre (pocas lecturas) para avisar de likes nuevos.
+  try { likesSeenAt = Number(localStorage.getItem(likesKey()) || 0) } catch (e) { likesSeenAt = 0 }
+  highlightSince = likesSeenAt
+  const mineQuery = fs.query(fs.collection(db, 'posts'), fs.where('owner', '==', u.uid), fs.limit(20))
+  unsubMine = fs.onSnapshot(mineQuery, (snap) => {
+    mine = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    mine.forEach((p) => Object.keys(p.likes || {}).forEach(loadProfile))
+    notifyNewLikes()
+    if (tab === 'friends') markLikesSeen()
+    renderMine()
+    renderBadge()
+  }, (err) => showError(err))
+
   if (window.PalavrasTabs.saved === 'friends') {
     window.PalavrasTabs.saved = null
     window.PalavrasTabs.show('friends')
@@ -129,15 +150,52 @@ function startFeed () {
     feed.forEach((p) => loadProfile(p.owner))
     renderFeed()
   }, (err) => showError(err))
-  unsubMine = fs.onSnapshot(fs.query(col, fs.where('owner', '==', user.uid), fs.limit(40)), (snap) => {
-    mine = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-    mine.forEach((p) => Object.keys(p.likes || {}).forEach(loadProfile))
-    renderMine()
-  }, (err) => showError(err))
+  // Al abrir la pestaña: se marcan los likes como vistos (pero se resaltan los nuevos).
+  highlightSince = likesSeenAt
+  markLikesSeen()
+  renderMine()
+  renderBadge()
 }
 function stopFeed () {
   if (unsubFeed) { unsubFeed(); unsubFeed = null }
-  if (unsubMine) { unsubMine(); unsubMine = null }
+}
+
+// ---------- Likes recibidos ----------
+function postTitle (p) {
+  if (p.type === 'phrase') return '«' + String(p.pt || '').slice(0, 40) + (String(p.pt || '').length > 40 ? '…' : '') + '»'
+  return '«' + p.word + '»'
+}
+function notifyNewLikes () {
+  const current = new Map(mine.map((p) => [p.id, new Set(Object.keys(p.likes || {}))]))
+  if (prevLikes) {
+    mine.forEach((p) => {
+      const before = prevLikes.get(p.id) || new Set()
+      current.get(p.id).forEach((uid) => {
+        if (!before.has(uid) && uid !== user.uid) {
+          loadProfile(uid).then((pr) => app.toast((pr ? pr.name : 'Un amigo') + ' le dio ❤️ a ' + postTitle(p) + '.', 'ok'))
+        }
+      })
+    })
+  }
+  prevLikes = current
+}
+function unseenLikes () {
+  let n = 0
+  mine.forEach((p) => Object.entries(p.likes || {}).forEach(([uid, v]) => { if (uid !== user.uid && likeTime(v) > likesSeenAt) n++ }))
+  return n
+}
+function markLikesSeen () {
+  let latest = likesSeenAt
+  mine.forEach((p) => Object.values(p.likes || {}).forEach((v) => { latest = Math.max(latest, likeTime(v)) }))
+  if (latest === likesSeenAt) return
+  likesSeenAt = latest
+  try { localStorage.setItem(likesKey(), String(likesSeenAt)) } catch (e) {}
+}
+function renderBadge () {
+  const n = (user ? incomingRequests().length : 0) + (user ? unseenLikes() : 0)
+  const badge = $('friends-badge')
+  badge.hidden = !n
+  badge.textContent = n
 }
 
 // ---------- Acciones ----------
@@ -216,7 +274,8 @@ async function createPost (data, what) {
 function toggleLike (post) {
   const { fs, db } = cloud
   const liked = !!(post.likes && post.likes[user.uid])
-  fs.updateDoc(fs.doc(db, 'posts', post.id), new fs.FieldPath('likes', user.uid), liked ? fs.deleteField() : true).catch(showError)
+  // Se guarda la hora del like: así el autor sabe cuáles son nuevos.
+  fs.updateDoc(fs.doc(db, 'posts', post.id), new fs.FieldPath('likes', user.uid), liked ? fs.deleteField() : Date.now()).catch(showError)
 }
 
 function deletePost (post) {
@@ -314,9 +373,7 @@ function renderFriends () {
   const outgoing = user ? outgoingRequests() : []
   const friends = user ? Array.from(friendships.entries()).filter(([, f]) => f.status === 'accepted') : []
 
-  const badge = $('friends-badge')
-  badge.hidden = !incoming.length
-  badge.textContent = incoming.length
+  renderBadge()
 
   $('req-in-box').hidden = !incoming.length
   $('req-in').replaceChildren(...incoming.map(([id, f]) => el('li', { class: 'person' }, [
@@ -403,6 +460,7 @@ function renderFeed () {
           'aria-label': liked ? 'Quitar me gusta' : 'Me gusta',
           onclick: () => toggleLike(p)
         }, [(liked ? '❤️' : '🤍') + ' ' + likes.length]),
+        likes.length ? el('span', { class: 'likers-inline', text: likersText(likes) }) : null,
         el('button', { type: 'button', class: 'link', text: '🔊 Escuchar', onclick: () => app.speak(speakText.replace(/[—«»]/g, ' ')) }),
         p.type === 'word'
           ? el('button', {
@@ -420,18 +478,35 @@ function renderFeed () {
   }))
 }
 
+function likersText (uids) {
+  const names = uids.map((uid) => (uid === user.uid ? 'Tú' : nameOf(uid)))
+  if (names.length <= 2) return names.join(' y ')
+  return names.slice(0, 2).join(', ') + ' y ' + (names.length - 2) + ' más'
+}
+
 function renderMine () {
   const list = $('my-posts')
   if (!user) { list.replaceChildren(); return }
   $('my-posts-empty').hidden = mine.length > 0
+  const total = mine.reduce((n, p) => n + Object.keys(p.likes || {}).length, 0)
+  $('my-likes-total').textContent = total ? '❤️ ' + total : ''
   list.replaceChildren(...mine.map((p) => {
-    const likes = Object.keys(p.likes || {})
-    const who = likes.map((uid) => nameOf(uid)).join(', ')
+    const likes = Object.entries(p.likes || {}).sort((a, b) => likeTime(b[1]) - likeTime(a[1]))
+    const likers = likes.length
+      ? el('div', { class: 'likers' }, [
+        el('span', { class: 'likers-title', text: '❤️ ' + likes.length + ' · Le gusta a:' }),
+        ...likes.map(([uid, v]) => el('span', { class: 'liker' + (likeTime(v) > highlightSince ? ' new' : '') }, [
+          avatarEl(uid, 22),
+          el('span', { text: nameOf(uid) }),
+          likeTime(v) > highlightSince ? el('span', { class: 'new-tag', text: 'nuevo' }) : null
+        ]))
+      ])
+      : el('div', { class: 'likers muted small', text: 'Todavía sin ❤️' })
     return el('li', { class: 'post compact' }, [
       postBody(p),
+      likers,
       el('div', { class: 'post-actions' }, [
-        el('span', { class: 'like-count', title: who, text: '❤️ ' + likes.length + (likes.length ? ' · ' + who : '') }),
-        el('span', { class: 'muted small', text: timeAgo(p.createdAt) }),
+        el('span', { class: 'muted small', text: 'Compartido ' + timeAgo(p.createdAt) }),
         el('button', { type: 'button', class: 'link danger', text: 'Dejar de compartir', onclick: () => deletePost(p) })
       ])
     ])

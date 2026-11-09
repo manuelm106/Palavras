@@ -379,3 +379,20 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
   .tabs { gap: 0; overflow-x: auto; scrollbar-width: none; }
   .tab { padding: 8px 9px; font-size: .9rem; }
 }
+/* Lo que compartí ocupa la columna principal, debajo de las novedades */
+.friends-layout > .my-posts-panel { grid-column: 1; }
+.friends-layout > aside { grid-column: 2; grid-row: 1 / span 2; }
+@media (max-width: 800px) {
+  .friends-layout > .my-posts-panel, .friends-layout > aside { grid-column: 1; grid-row: auto; }
+  .friends-layout > aside { order: 3; }
+}
+.likes-total { font-size: .9rem; font-weight: 600; color: var(--danger); margin-left: 6px; }
+.likers { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 8px; }
+.likers-title { font-size: .85rem; font-weight: 600; }
+.liker {
+  display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px 2px 2px;
+  border: 1px solid var(--border); border-radius: 999px; font-size: .85rem; background: var(--bg);
+}
+.liker.new { border-color: var(--danger); }
+.new-tag { font-size: .68rem; font-weight: 700; color: var(--danger); text-transform: uppercase; }
+.likers-inline { font-size: .82rem; color: var(--muted); }
