@@ -89,25 +89,86 @@
     meaningInput.placeholder = items[0] ? 'Sugerido: ' + items[0] : 'ej.: nostalgia, extrañar'
   }
 
+  // ---------- Traductores ----------
+  // 1) MyMemory (varias opciones de traducción). Tiene un límite diario por conexión:
+  //    si se agota, se deja de consultar por un rato y se usa el respaldo.
+  // 2) Apertium (traductor libre, buen par portugués→español; una sola opción).
+  var APERTIUM = 'https://apertium.org/apy/translate'
+  var BLOCK_KEY = 'palabras-pt:mymemory-bloqueado-hasta'
+
+  function myMemoryBlocked () {
+    try { return Number(localStorage.getItem(BLOCK_KEY) || 0) > Date.now() } catch (e) { return false }
+  }
+  function blockMyMemory (hours) {
+    try { localStorage.setItem(BLOCK_KEY, String(Date.now() + hours * 3600 * 1000)) } catch (e) {}
+  }
+
+  function fetchJSON (url) {
+    return fetch(url).then(function (r) {
+      return r.json().catch(function () { return { responseStatus: r.status } })
+    })
+  }
+
+  function fromMyMemory (query) {
+    if (myMemoryBlocked()) return Promise.reject(new Error('quota'))
+    var url = API + '?q=' + encodeURIComponent(query) + '&langpair=' + encodeURIComponent('pt|es')
+    return fetchJSON(url).then(function (data) {
+      var status = Number(data && data.responseStatus)
+      var text = String((data && data.responseData && data.responseData.translatedText) || '') + ' ' + String((data && data.responseDetails) || '')
+      if (status === 429 || /MYMEMORY WARNING|USED ALL AVAILABLE|QUOTA/i.test(text)) {
+        blockMyMemory(3)
+        throw new Error('quota')
+      }
+      if (status !== 200) throw new Error('mymemory ' + status + ' ' + text.trim())
+      return parse(data, query)
+    })
+  }
+
+  function fromApertium (query) {
+    var url = APERTIUM + '?langpair=' + encodeURIComponent('por|spa') + '&markUnknown=yes&q=' + encodeURIComponent(query)
+    return fetchJSON(url).then(function (data) {
+      if (Number(data && data.responseStatus) !== 200) throw new Error('apertium ' + (data && data.responseStatus))
+      var t = String(data.responseData && data.responseData.translatedText || '').trim()
+      // Apertium marca con * (o # / @) las palabras que no conoce.
+      if (!t || /[*#@]/.test(t)) return []
+      return parse({ responseData: { translatedText: t }, matches: [] }, query)
+    })
+  }
+
   function lookup (query) {
     if (cache[query]) { render(query, cache[query]); return }
     render(query, [], 'Buscando significado…')
-    var url = API + '?q=' + encodeURIComponent(query) + '&langpair=' + encodeURIComponent('pt-BR|es')
-    fetch(url)
-      .then(function (r) { return r.json() })
-      .then(function (data) {
-        if (query !== lastQuery) return // llegó tarde: el usuario ya escribió otra cosa
-        if (data && Number(data.responseStatus) !== 200) {
-          render(query, [], 'No se pudo obtener el significado ahora (límite diario del traductor).')
-          return
-        }
-        var items = parse(data, query)
-        cache[query] = items
-        saveCache()
-        render(query, items)
+    var quota = false
+    var failed = 0
+
+    fromMyMemory(query)
+      .catch(function (err) {
+        if (err && err.message === 'quota') quota = true
+        else console.warn('MyMemory:', err && err.message)
+        failed++
+        return []
       })
-      .catch(function () {
-        if (query === lastQuery) render(query, [], 'Sin conexión: no se puede sugerir el significado.')
+      .then(function (items) {
+        if (items.length) return items
+        return fromApertium(query).catch(function (err) {
+          console.warn('Apertium:', err && err.message)
+          failed++
+          return []
+        })
+      })
+      .then(function (items) {
+        if (query !== lastQuery) return // llegó tarde: el usuario ya escribió otra cosa
+        if (items.length) {
+          cache[query] = items
+          saveCache()
+          render(query, items)
+        } else if (failed >= 2) {
+          render(query, [], quota
+            ? 'Los traductores gratuitos no responden ahora (se agotó el límite diario). Puedes escribir el significado a mano.'
+            : 'No se pudo conectar con los traductores. Revisa tu conexión o escribe el significado a mano.')
+        } else {
+          render(query, [])
+        }
       })
   }
 

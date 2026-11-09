@@ -7,7 +7,7 @@ Una app web pequeña (HTML + CSS + JavaScript, sin dependencias) para armar tu p
 ## Qué hace
 
 - **Cargar palabras con un formulario**: la palabra o expresión, y, si quieres, su significado y una frase tuya de ejemplo.
-- **Sugerencia de significado**: al escribir la palabra, aparecen posibles traducciones al español (servicio gratuito [MyMemory](https://mymemory.translated.net/)). Se toca una para usarla como significado; nunca se completa sola. Las consultas se guardan en caché en el navegador.
+- **Sugerencia de significado**: al escribir la palabra, aparecen posibles traducciones al español (servicio gratuito [MyMemory](https://mymemory.translated.net/); si no responde o se agotó su límite diario, se usa [Apertium](https://apertium.org/) como respaldo). Se toca una para usarla como significado; nunca se completa sola. Las consultas se guardan en caché en el navegador.
 - **Clasificación automática** en *sustantivo, adjetivo, verbo, adverbio, conector* o *expresión*. Mientras escribes, te muestra la sugerencia, el motivo (por ejemplo: termina en "-mente") y qué tan segura está. Puedes elegir otra categoría al cargarla o cambiarla después desde la lista.
 - **Lista** con filtros por categoría, buscador, pronunciación (🔊, usa la voz pt-BR del navegador) y ejemplos de uso.
 - **Notificaciones al azar**: actívalas y elige un rango (por ejemplo, cada 15 a 45 minutos). La app elige una palabra al azar (prefiere las que viste menos veces) y te manda un ejemplo de uso.
@@ -61,7 +61,7 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 
 - La clasificación usa **reglas heurísticas** (listas de palabras frecuentes y sufijos), no un diccionario completo. Funciona bien con infinitivos (`-ar/-er/-ir`), adverbios en `-mente`, sufijos típicos (`-ção`, `-dade`, `-vel`, `-oso`…) y los conectores y expresiones más comunes. En los casos dudosos la confianza aparece baja, y conviene revisar la categoría.
 - Los conectores, adverbios y expresiones frecuentes tienen **ejemplos escritos a mano**. Para el resto se usan plantillas que respetan el género y el número (o/a, no/na, do/da…), así que algunas frases pueden quedar raras. Lo mejor es agregar tus propios ejemplos, que tienen prioridad.
-- Las sugerencias de significado son traducciones automáticas: conviene revisarlas. MyMemory permite un número limitado de consultas gratis por día y por conexión; si se supera, la app lo avisa y se puede escribir el significado a mano.
+- Las sugerencias de significado son traducciones automáticas: conviene revisarlas. MyMemory permite un número limitado de consultas gratis por día y por conexión (en datos móviles esa conexión puede ser compartida con otras personas). Si se agota, la app usa Apertium durante unas horas; si ninguno responde, lo avisa y se puede escribir el significado a mano.
 - Las notificaciones llegan **mientras la pestaña esté abierta**, aunque esté en segundo plano. Para recibirlas con el navegador cerrado haría falta un servidor de *push*.
 
 ## Archivos
@@ -74,7 +74,7 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 | `js/examples.js` | Generador de ejemplos de uso |
 | `js/app.js` | Estado, formulario, lista, notificaciones |
 | `js/challenge.js` | Modo desafío y puntajes |
-| `js/translate.js` | Sugerencias de significado (MyMemory) |
+| `js/translate.js` | Sugerencias de significado (MyMemory, con Apertium de respaldo) |
 | `js/firebase-config.js` | Configuración de Firebase (opcional) |
 | `js/sync.js` | Inicio de sesión con Google y sincronización con Firestore |
 | `sw.js` | Service worker para las notificaciones del sistema |
