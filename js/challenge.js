@@ -9,7 +9,17 @@
 
   var app = window.PalavrasApp
   if (!app) return
-  var CATS = app.categories
+  // Respaldo por si el navegador cargó una versión vieja de app.js desde la caché.
+  var CATS = app.categories || window.Classifier.CATEGORIES
+  if (!app.save) app.save = function () {}
+  if (!app.speak) {
+    app.speak = function (text) {
+      if (!window.speechSynthesis) return
+      var u = new SpeechSynthesisUtterance(text)
+      u.lang = 'pt-BR'
+      window.speechSynthesis.speak(u)
+    }
+  }
   var LOCAL_KEY = 'palabras-pt:desafio'
   var TAB_KEY = 'palabras-pt:pestana'
 
