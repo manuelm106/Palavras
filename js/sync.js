@@ -262,10 +262,27 @@ function renderUser (user) {
     $('#user-name').textContent = user.displayName || user.email || 'Tu cuenta'
     const img = $('#avatar')
     if (user.photoURL) { img.src = user.photoURL; img.hidden = false } else img.hidden = true
+    showQuote() // una frase nueva en cada inicio de sesión (y cada vez que se abre la app)
   } else {
     setStatus('')
   }
 }
+
+// ---------- Frase del día (motivación, chiste, expresión o consejo) ----------
+function showQuote () {
+  if (!window.Phrases) return
+  const q = window.Phrases.random()
+  $('#quote-kind').textContent = q.icon + ' ' + q.label
+  $('#quote-pt').textContent = q.pt
+  $('#quote-es').textContent = q.es
+  $('#user-quote').hidden = false
+}
+
+document.querySelector('#quote-next').addEventListener('click', showQuote)
+document.querySelector('#quote-speak').addEventListener('click', () => {
+  const text = $('#quote-pt').textContent.replace(/[—«»]/g, ' ')
+  if (text.trim() && app && app.speak) app.speak(text)
+})
 
 function setStatus (text) {
   const el = document.querySelector('#sync-status')
