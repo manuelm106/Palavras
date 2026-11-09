@@ -221,3 +221,9 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
 .toast-body { margin: 4px 0 6px; font-style: italic; }
 .toast-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-left: -4px; }
 @keyframes pop { from { transform: translateY(8px); opacity: 0; } }
+
+.account { margin-top: 12px; }
+.signed-in { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.signed-in img { border-radius: 50%; }
+.signed-in .muted { margin: 0; }
+[hidden] { display: none !important; }

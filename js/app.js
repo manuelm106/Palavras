@@ -34,8 +34,14 @@
     }
   }
 
-  function save () {
+  function saveLocal () {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch (e) { /* modo privado */ }
+  }
+
+  // Guarda en este dispositivo y, si hay sesión iniciada, sincroniza con la nube.
+  function save () {
+    saveLocal()
+    if (window.PalavrasSync) window.PalavrasSync.push(state.words)
   }
 
   function uid () {
@@ -470,6 +476,26 @@
     }
     reader.readAsText(file)
   })
+
+  // ---------- Puente con la sincronización (js/sync.js) ----------
+  window.PalavrasApp = {
+    getWords: function () { return state.words },
+    // Reemplaza la lista con la versión de la nube (sin volver a subirla).
+    replaceWords: function (words) {
+      words = words.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0) })
+      if (JSON.stringify(words) === JSON.stringify(state.words)) return
+      state.words = words
+      saveLocal()
+      render()
+      if (state.settings.enabled && !state.nextAt) scheduleNext()
+    },
+    clearWords: function () {
+      state.words = []
+      saveLocal()
+      render()
+    },
+    toast: toast
+  }
 
   // ---------- Inicio ----------
   var params = new URLSearchParams(location.search)

@@ -11,6 +11,7 @@ Una app web pequeña (HTML + CSS + JavaScript, sin dependencias) para armar tu p
 - **Lista** con filtros por categoría, buscador, pronunciación (🔊, usa la voz pt-BR del navegador) y ejemplos de uso.
 - **Notificaciones al azar**: actívalas y elige un rango (por ejemplo, cada 15 a 45 minutos). La app elige una palabra al azar (prefiere las que viste menos veces) y te manda un ejemplo de uso.
 - **Exportar/importar** la lista en JSON. Todo se guarda en el `localStorage` del navegador.
+- **Sincronización opcional** entre dispositivos: inicias sesión con Google y ves la misma lista en el celular y en la computadora (usa Firebase; ver abajo). La configuración de notificaciones sigue siendo de cada dispositivo.
 
 ## Cómo usarla
 
@@ -22,6 +23,36 @@ python3 -m http.server 8000
 ```
 
 Si la abres con doble clic (`file://`), funciona todo igual, pero los avisos solo aparecen dentro de la página.
+
+## Sincronización con Firebase
+
+Mientras `js/firebase-config.js` tenga `window.FIREBASE_CONFIG = null`, la app funciona solo en el dispositivo. Para activar la sincronización:
+
+1. Crear un proyecto en https://console.firebase.google.com (Google Analytics no hace falta).
+2. **Authentication → Comenzar → Método de acceso → Google** → habilitar y guardar.
+3. **Authentication → Configuración → Dominios autorizados** → agregar `manuelm106.github.io`.
+4. **Firestore Database → Crear base de datos** (modo producción) y, en **Reglas**, pegar:
+
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{uid}/words/{wordId} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+     }
+   }
+   ```
+
+5. **Configuración del proyecto → Tus apps → Web (`</>`)** → registrar la app y copiar el objeto `firebaseConfig` en `js/firebase-config.js`:
+
+   ```js
+   window.FIREBASE_CONFIG = { apiKey: '…', authDomain: '…', projectId: '…', storageBucket: '…', messagingSenderId: '…', appId: '…' }
+   ```
+
+Estos datos de configuración no son secretos; lo que protege la lista son las reglas del paso 4: cada usuario solo puede leer y escribir sus propias palabras (`users/{uid}/words`).
+
+Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía se suman a la cuenta. Al cerrar sesión, la lista se quita de ese dispositivo (sigue guardada en la cuenta).
 
 ## Limitaciones
 
@@ -38,4 +69,6 @@ Si la abres con doble clic (`file://`), funciona todo igual, pero los avisos sol
 | `js/classifier.js` | Clasificador heurístico |
 | `js/examples.js` | Generador de ejemplos de uso |
 | `js/app.js` | Estado, formulario, lista, notificaciones |
+| `js/firebase-config.js` | Configuración de Firebase (opcional) |
+| `js/sync.js` | Inicio de sesión con Google y sincronización con Firestore |
 | `sw.js` | Service worker para las notificaciones del sistema |
