@@ -67,15 +67,45 @@
   }
 
   // ---------- Pronunciación ----------
+  // En Safari (iPhone) las voces cargan tarde, y llamar a speak() justo
+  // después de cancel() falla en silencio. Por eso: se precargan las voces,
+  // solo se cancela si algo está sonando y, en ese caso, se espera un momento.
+  var currentUtterance = null // referencia para que no se libere a mitad de frase
+
+  function ptVoice () {
+    var voices = window.speechSynthesis.getVoices()
+    return voices.filter(function (v) { return /^pt[-_]BR/i.test(v.lang) })[0] ||
+      voices.filter(function (v) { return /^pt/i.test(v.lang) })[0] || null
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.getVoices()
+    if ('onvoiceschanged' in window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = function () { window.speechSynthesis.getVoices() }
+    }
+  }
+
   function speak (text) {
-    if (!('speechSynthesis' in window)) return
+    var synth = window.speechSynthesis
+    if (!synth || !window.SpeechSynthesisUtterance) {
+      toast('Tu navegador no permite reproducir audio de texto.', 'info')
+      return
+    }
     var u = new SpeechSynthesisUtterance(text)
     u.lang = 'pt-BR'
-    var voice = speechSynthesis.getVoices().filter(function (v) { return /^pt(-|_)BR/i.test(v.lang) })[0] ||
-      speechSynthesis.getVoices().filter(function (v) { return /^pt/i.test(v.lang) })[0]
+    u.rate = 0.9
+    var voice = ptVoice()
     if (voice) u.voice = voice
-    speechSynthesis.cancel()
-    speechSynthesis.speak(u)
+    u.onend = u.onerror = function () { if (currentUtterance === u) currentUtterance = null }
+    currentUtterance = u
+
+    if (synth.paused) synth.resume() // iOS puede quedar en pausa al volver de segundo plano
+    if (synth.speaking || synth.pending) {
+      synth.cancel()
+      setTimeout(function () { synth.speak(u) }, 120)
+    } else {
+      synth.speak(u)
+    }
   }
 
   // ---------- Formulario ----------
