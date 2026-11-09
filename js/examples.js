@@ -263,7 +263,7 @@
       out.push({ pt: pt, es: es || '', source: source })
     }
     ;(entry.examples || []).forEach(function (x) { add(x, '', 'own') })
-    real(entry.word).forEach(function (x) { add(x.pt, x.es, 'tatoeba') })
+    real(entry.word).forEach(function (x) { add(x.pt, x.es, x.src || 'tatoeba') })
     curated(entry.word).forEach(function (x) { add(x, '', 'curated') })
     if (!out.length) templates(entry.word, entry.category, entry.gender).forEach(function (x) { add(x, '', 'template') })
     return out

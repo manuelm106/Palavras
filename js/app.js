@@ -237,7 +237,9 @@
     }
     var tag = item.source === 'tatoeba'
       ? el('a', { class: 'example-source', href: 'https://tatoeba.org/es/sentences/search?from=por&query=' + encodeURIComponent(w.word), target: '_blank', rel: 'noopener' }, ['Frase real · Tatoeba'])
-      : item.source === 'own'
+      : item.source === 'wiktionary'
+        ? el('a', { class: 'example-source', href: 'https://en.wiktionary.org/wiki/' + encodeURIComponent(w.word.replace(/ /g, '_')) + '#Portuguese', target: '_blank', rel: 'noopener' }, ['Frase real · Wiktionary'])
+        : item.source === 'own'
         ? el('span', { class: 'example-source', text: 'Tu ejemplo' })
         : item.source === 'template'
           ? el('span', { class: 'example-source', text: 'Frase modelo' })
@@ -339,6 +341,8 @@
     highlight(w.id)
   }
 
+  var exhausted = {} // palabras sin más ejemplos en esta sesión
+
   function renderItem (w) {
     var current = Examples.randomItem(w)
     var loading = false
@@ -350,7 +354,8 @@
     function show (item) {
       current = item
       exampleBox.replaceChildren.apply(exampleBox, exampleContent(w, item, loading).filter(Boolean))
-      otherBtn.hidden = !item
+      // Se oculta si ya se buscó y no hay más (salvo que ahora haya otro disponible).
+      otherBtn.hidden = !item || (exhausted[w.id] && Examples.forWord(w).length < 2)
       speakBtn.hidden = !item
       writeBtn.hidden = !!item || loading
     }
@@ -362,17 +367,23 @@
       if (!window.Sentences) { noMore(); return }
       otherBtn.disabled = true
       note.textContent = 'Buscando más frases…'
-      window.Sentences.more(w.word).then(function (added) {
+      window.Sentences.more(w.word).then(function (res) {
         otherBtn.disabled = false
         note.textContent = ''
         if (!exampleBox.isConnected) return
-        var fresh = added ? Examples.randomItem(w, null, current && current.pt) : null
+        var fresh = res.added ? Examples.randomItem(w, null, current && current.pt) : null
         if (fresh) show(fresh)
-        else noMore()
-      }, function () { otherBtn.disabled = false; noMore() })
+        else noMore(res.reached)
+      }, function () { otherBtn.disabled = false; noMore(false) })
     }
-    function noMore () {
-      note.replaceChildren('No hay más ejemplos para «' + w.word + '». ', el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['Escribe el tuyo']))
+    // Sin más frases: se avisa y el botón se oculta para esta palabra (hasta recargar).
+    function noMore (reached) {
+      exhausted[w.id] = true
+      otherBtn.hidden = true
+      var text = reached === false
+        ? 'No pude conectarme ahora a los servicios de frases. '
+        : 'Es el único ejemplo que encontré para «' + w.word + '». '
+      note.replaceChildren(text, el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['Escribe uno tuyo']))
     }
     function openOwnExample () {
       var card = document.getElementById('w-' + w.id)

@@ -1,7 +1,10 @@
 /*
- * Frases reales en portugués (con traducción al español cuando existe) desde
- * Tatoeba (https://tatoeba.org), una base libre de frases escritas por personas.
- * Licencia de las frases: CC BY 2.0 FR.
+ * Frases reales en portugués, de dos fuentes libres:
+ *   - Tatoeba (https://tatoeba.org): frases escritas por personas, con traducción
+ *     al español cuando existe. Licencia CC BY 2.0 FR.
+ *   - Wiktionary en inglés (https://en.wiktionary.org): ejemplos de uso de las
+ *     entradas en portugués (su API permite consultas desde cualquier página).
+ *     Licencia CC BY-SA.
  *
  * - Se guardan en caché en este navegador (también los "no encontrado", que se
  *   reintentan a la semana).
@@ -69,7 +72,7 @@
       seen[k] = true
       var es = []
       collectSpanish(it.translations, es)
-      out.push({ pt: text, es: es[0] || '' })
+      out.push({ pt: text, es: es[0] || '', src: 'tatoeba' })
     })
     // Primero las que tienen traducción y son más cortas.
     out.sort(function (a, b) { return (b.es ? 1 : 0) - (a.es ? 1 : 0) || a.pt.length - b.pt.length })
@@ -87,34 +90,99 @@
       }, function (err) { clearTimeout(timer); throw err })
   }
 
-  function endpoints (word) {
+  function endpoints (word, sortRandom) {
     var multi = word.indexOf(' ') !== -1
-    var q = multi ? '"' + word + '"' : '=' + word
+    var q = encodeURIComponent(multi ? '"' + word + '"' : '=' + word)
+    if (sortRandom) {
+      return [
+        'https://api.tatoeba.org/unstable/sentences?lang=por&q=' + q + '&showtrans=spa&sort=random&limit=30',
+        'https://tatoeba.org/es/api_v0/search?from=por&orphans=no&unapproved=no&sort=random&query=' + q
+      ]
+    }
     return [
       // API oficial nueva
-      'https://api.tatoeba.org/unstable/sentences?lang=por&q=' + encodeURIComponent(q) +
-        '&trans:lang=spa&showtrans=spa&sort=relevance&limit=20',
+      'https://api.tatoeba.org/unstable/sentences?lang=por&q=' + q + '&trans:lang=spa&showtrans=spa&sort=relevance&limit=20',
       // API anterior
-      'https://tatoeba.org/es/api_v0/search?from=por&to=spa&orphans=no&unapproved=no&sort=relevance&query=' + encodeURIComponent(q),
+      'https://tatoeba.org/es/api_v0/search?from=por&to=spa&orphans=no&unapproved=no&sort=relevance&query=' + q,
       // Sin exigir traducción (por si no hay ninguna en español)
-      'https://tatoeba.org/es/api_v0/search?from=por&orphans=no&unapproved=no&sort=relevance&query=' + encodeURIComponent(q)
+      'https://tatoeba.org/es/api_v0/search?from=por&orphans=no&unapproved=no&sort=relevance&query=' + q
     ]
   }
 
-  function search (word) {
-    var urls = endpoints(word)
+  // ---------- Wiktionary ----------
+  function stripHtml (html) {
+    var d = String(html || '').replace(/<[^>]+>/g, '')
+    return d.replace(/&nbsp;/g, ' ').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim()
+  }
+
+  function parseWiktionary (data, word) {
+    var entries = (data && data.pt) || []
+    var w = fold(word)
+    var root = w.split(' ')[0]
+    root = root.length > 5 ? root.slice(0, root.length - 2) : root
+    var out = []
+    var seen = {}
+    entries.forEach(function (entry) {
+      ;(entry.definitions || []).forEach(function (def) {
+        var list = (def.parsedExamples || []).map(function (e) { return e.example })
+        if (!list.length) list = def.examples || []
+        list.forEach(function (ex) {
+          var text = stripHtml(ex)
+          if (!text || text.length > 160 || fold(text).indexOf(root) === -1) return
+          var k = fold(text)
+          if (seen[k]) return
+          seen[k] = true
+          out.push({ pt: text, es: '', src: 'wiktionary' })
+        })
+      })
+    })
+    return out.slice(0, MAX_SENTENCES)
+  }
+
+  function fromWiktionary (word) {
+    var url = 'https://en.wiktionary.org/api/rest_v1/page/definition/' + encodeURIComponent(word.replace(/ /g, '_')) + '?redirect=true'
+    return fetchJSON(url).then(function (data) { return parseWiktionary(data, word) }, function (err) {
+      // 404 = la palabra no está en Wiktionary (el servicio sí responde).
+      if (err && /HTTP 404/.test(err.message)) return []
+      throw err
+    })
+  }
+
+  // Qué servicios respondieron en esta sesión (para diagnosticar y avisar).
+  var status = { tatoeba: 'unknown', wiktionary: 'unknown' }
+
+  function tryUrls (urls, word) {
     var i = 0
-    var anySuccess = false
+    var reached = false
     function next () {
-      if (i >= urls.length) return anySuccess ? [] : Promise.reject(new Error('sin conexión con Tatoeba'))
-      var url = urls[i++]
-      return fetchJSON(url).then(function (data) {
-        anySuccess = true
+      if (i >= urls.length) return Promise.resolve({ list: [], reached: reached })
+      return fetchJSON(urls[i++]).then(function (data) {
+        reached = true
         var found = parse(data, word)
-        return found.length ? found : next()
+        return found.length ? { list: found, reached: true } : next()
       }, function () { return next() })
     }
-    return Promise.resolve().then(next)
+    return next()
+  }
+
+  /** Busca en Tatoeba y, si no hay nada, en Wiktionary. Rechaza si ningún servicio responde. */
+  function search (word, sortRandom) {
+    var urls = endpoints(word, sortRandom)
+    return tryUrls(urls, word).then(function (t) {
+      status.tatoeba = t.reached ? 'ok' : 'fail'
+      if (t.list.length) return t.list
+      return fromWiktionary(word).then(function (list) {
+        status.wiktionary = 'ok'
+        return list
+      }, function () {
+        status.wiktionary = 'fail'
+        if (!t.reached) {
+          console.warn('Palavras: no se pudo conectar con Tatoeba ni con Wiktionary.')
+          throw new Error('sin conexión')
+        }
+        return []
+      })
+    })
   }
 
   // ---------- Cola de consultas ----------
@@ -162,36 +230,34 @@
    */
   function fetchMore (word) {
     var k = key(word)
-    if (!k || typeof fetch === 'undefined') return Promise.resolve(0)
+    if (!k || typeof fetch === 'undefined') return Promise.resolve({ added: 0, reached: false })
     moreTries[k] = (moreTries[k] || 0) + 1
-    var multi = k.indexOf(' ') !== -1
-    var q = encodeURIComponent(multi ? '"' + k + '"' : '=' + k)
-    var urls = [
-      'https://api.tatoeba.org/unstable/sentences?lang=por&q=' + q + '&showtrans=spa&sort=random&limit=30',
-      'https://tatoeba.org/es/api_v0/search?from=por&orphans=no&unapproved=no&sort=random&query=' + q
-    ]
-    var i = 0
-    function next () {
-      if (i >= urls.length) return Promise.resolve([])
-      return fetchJSON(urls[i++]).then(function (data) {
-        var found = parse(data, k)
-        return found.length ? found : next()
-      }, next)
-    }
-    return next().then(function (found) {
-      var current = (cache[k] && cache[k].s) || []
-      var known = {}
-      current.forEach(function (x) { known[fold(x.pt)] = true })
-      var fresh = found.filter(function (x) { return !known[fold(x.pt)] })
+    var current = (cache[k] && cache[k].s) || []
+    var known = {}
+    current.forEach(function (x) { known[fold(x.pt)] = true })
+    // Frases al azar de Tatoeba + los ejemplos de Wiktionary (si no estaban ya).
+    var t = tryUrls(endpoints(k, true), k).then(function (r) { status.tatoeba = r.reached ? 'ok' : 'fail'; return r })
+    var wk = fromWiktionary(k).then(function (list) { status.wiktionary = 'ok'; return { list: list, reached: true } },
+      function () { status.wiktionary = 'fail'; return { list: [], reached: false } })
+    return Promise.all([t, wk]).then(function (res) {
+      var found = res[0].list.concat(res[1].list)
+      var fresh = found.filter(function (x) { var f = fold(x.pt); if (known[f]) return false; known[f] = true; return true })
       if (fresh.length) {
         cache[k] = { t: Date.now(), s: current.concat(fresh).slice(0, MAX_STORED) }
         save()
       }
-      return fresh.length
+      return { added: fresh.length, reached: res[0].reached || res[1].reached }
     })
   }
 
-  var api = { get: get, fetch: fetchFor, more: fetchMore, _parse: parse }
+  var api = {
+    get: get,
+    fetch: fetchFor,
+    more: fetchMore,
+    status: function () { return Object.assign({}, status) },
+    _parse: parse,
+    _parseWiktionary: parseWiktionary
+  }
   if (typeof module !== 'undefined' && module.exports) module.exports = api
   else root.Sentences = api
 })(this)
