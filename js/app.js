@@ -225,8 +225,50 @@
     items.forEach(function (w) { list.appendChild(renderItem(w)) })
   }
 
+  // Muestra un ejemplo (propio, frase real de Tatoeba o escrito a mano) con su traducción.
+  function exampleContent (w, item, loading) {
+    if (!item) {
+      return [el('p', { class: 'example-empty' }, [
+        loading ? 'Buscando frases reales con «' + w.word + '»…' : 'Todavía no hay un ejemplo para «' + w.word + '». Escribe el tuyo en «Mis ejemplos».'
+      ])]
+    }
+    var tag = item.source === 'tatoeba'
+      ? el('a', { class: 'example-source', href: 'https://tatoeba.org/es/sentences/search?from=por&query=' + encodeURIComponent(w.word), target: '_blank', rel: 'noopener' }, ['Frase real · Tatoeba'])
+      : item.source === 'own'
+        ? el('span', { class: 'example-source', text: 'Tu ejemplo' })
+        : item.source === 'template'
+          ? el('span', { class: 'example-source', text: 'Frase modelo' })
+          : null
+    return [
+      el('p', { class: 'example', lang: 'pt-BR', text: item.pt }),
+      item.es ? el('p', { class: 'example-es', text: item.es }) : null,
+      tag
+    ]
+  }
+
   function renderItem (w) {
-    var exampleBox = el('p', { class: 'example', text: Examples.randomExample(w) })
+    var current = Examples.randomItem(w)
+    var loading = false
+    var exampleBox = el('div', { class: 'example-box' })
+    var otherBtn = el('button', { type: 'button', class: 'link', onclick: function () { show(Examples.randomItem(w, null, current && current.pt) || current) } }, ['Otro ejemplo'])
+    var speakBtn = el('button', { type: 'button', class: 'link', onclick: function () { if (current) speak(current.pt) } }, ['Escuchar frase'])
+    function show (item) {
+      current = item
+      exampleBox.replaceChildren.apply(exampleBox, exampleContent(w, item, loading).filter(Boolean))
+      otherBtn.hidden = Examples.forWord(w).length < 2
+      speakBtn.hidden = !item
+    }
+    // Si nunca se buscaron frases reales para esta palabra, se buscan ahora.
+    if (window.Sentences && window.Sentences.get(w.word) === null) {
+      loading = true
+      window.Sentences.fetch(w.word).then(function () {
+        loading = false
+        if (!exampleBox.isConnected) return
+        if (!current || current.source === 'template') show(Examples.randomItem(w))
+        else show(current)
+      })
+    }
+    show(current)
 
     var select = el('select', {
       class: 'cat-select',
@@ -290,7 +332,7 @@
             title: 'Compartir con mis amigos',
             'aria-label': 'Compartir ' + w.word + ' con mis amigos',
             onclick: function () {
-              if (window.PalavrasSocial) window.PalavrasSocial.shareWord(w, exampleBox.textContent)
+              if (window.PalavrasSocial) window.PalavrasSocial.shareWord(w, current ? current.pt : '')
               else toast('Inicia sesión con Google para compartir con tus amigos.', 'info')
             }
           }, ['📤']),
@@ -310,8 +352,8 @@
       ]),
       el('div', { class: 'example-row' }, [
         exampleBox,
-        el('button', { type: 'button', class: 'link', onclick: function () { exampleBox.textContent = Examples.randomExample(w) } }, ['Otro ejemplo']),
-        el('button', { type: 'button', class: 'link', onclick: function () { speak(exampleBox.textContent) } }, ['Escuchar frase'])
+        otherBtn,
+        speakBtn
       ]),
       details
     ])
@@ -372,7 +414,10 @@
   function fire () {
     var w = pickWord()
     if (!w) return
-    var example = Examples.randomExample(w)
+    var item = Examples.randomItem(w)
+    // Sin ejemplo, la notificación invita a armar una frase.
+    var example = item ? item.pt : '¿Cómo usarías «' + w.word + '» en una frase?'
+    var translation = item && item.es ? item.es : ''
     state.shown[w.id] = (state.shown[w.id] || 0) + 1
     state.lastWordId = w.id
     saveLocal() // el contador no se sincroniza: ahorra escrituras en la nube
@@ -382,7 +427,7 @@
     var canNotify = notificationsSupported() && Notification.permission === 'granted'
 
     if (canNotify && !visible) {
-      var opts = { body: example, icon: 'icon.svg', badge: 'icon.svg', tag: 'palabras-pt', renotify: true, lang: 'pt-BR', data: { id: w.id } }
+      var opts = { body: example + (translation ? '\n' + translation : ''), icon: 'icon.svg', badge: 'icon.svg', tag: 'palabras-pt', renotify: true, lang: 'pt-BR', data: { id: w.id } }
       if (swReg && swReg.showNotification) {
         swReg.showNotification(title, opts)
       } else {
@@ -392,7 +437,7 @@
         } catch (e) { /* algunos navegadores móviles exigen service worker */ }
       }
     }
-    toast(null, 'note', { title: title, body: example, id: w.id })
+    toast(null, 'note', { title: title, body: example, es: translation, speak: item ? item.pt : w.word, id: w.id })
   }
 
   function tick () {
@@ -478,8 +523,9 @@
       node = el('div', { class: 'toast note', role: 'status' }, [
         el('div', { class: 'toast-title', lang: 'pt-BR', text: '🇧🇷 ' + note.title }),
         el('div', { class: 'toast-body', lang: 'pt-BR', text: note.body }),
+        note.es ? el('div', { class: 'toast-es', text: note.es }) : null,
         el('div', { class: 'toast-actions' }, [
-          el('button', { type: 'button', class: 'link', onclick: function () { speak(note.body) } }, ['🔊 Escuchar']),
+          el('button', { type: 'button', class: 'link', onclick: function () { speak(note.speak || note.body) } }, ['🔊 Escuchar']),
           el('button', { type: 'button', class: 'link', onclick: function () { highlight(note.id); dismiss() } }, ['Ver en la lista']),
           el('button', { type: 'button', class: 'link', onclick: dismiss }, ['Cerrar'])
         ])
@@ -518,7 +564,10 @@
       if (!group.length) return
       var rows = group.map(function (w) {
         // Primero el ejemplo propio; si no hay, el primer ejemplo sugerido (estable, no aleatorio).
-        var example = (w.examples || []).filter(Boolean)[0] || stablePick(Examples.allExamples(w.word, w.category), w.word) || ''
+        var items = Examples.forWord(w)
+        var own = items.filter(function (x) { return x.source === 'own' })
+        var chosen = own[0] || stablePick(items, w.word) || null
+        var example = chosen ? chosen.pt + (chosen.es ? ' — ' + chosen.es : '') : ''
         return el('tr', {}, [
           el('td', { class: 'p-word', lang: 'pt-BR', text: w.word }),
           el('td', { text: w.meaning || '' }),

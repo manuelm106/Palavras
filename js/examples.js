@@ -1,8 +1,11 @@
 /*
- * Generador de ejemplos de uso en portugués (de Brasil).
- * - Conectores, adverbios y expresiones frecuentes tienen ejemplos curados.
- * - El resto usa plantillas por categoría que respetan género y número
- *   (o/a/os/as, no/na, do/da...).
+ * Ejemplos de uso en portugués (de Brasil), en este orden de prioridad:
+ *   1. Los ejemplos propios del usuario.
+ *   2. Frases reales de Tatoeba (js/sentences.js), con traducción si existe.
+ *   3. Ejemplos escritos a mano para conectores, adverbios y expresiones frecuentes.
+ *   4. Solo para sustantivos, dos frases modelo neutras (con género y número correctos).
+ * No se inventan frases para verbos, adjetivos ni adverbios: sin contexto, una
+ * plantilla produce frases incorrectas («vou chover», «a cidade é cansada»...).
  */
 (function (root) {
   'use strict'
@@ -129,6 +132,10 @@
   }
 
   // ---------- Género y número (heurístico) ----------
+  // Masculinos que las reglas marcarían como femeninos.
+  var MASC_EXTRA = ['coração', 'avião', 'caminhão', 'feijão', 'limão', 'irmão', 'cão', 'chão',
+    'verão', 'sabão', 'botão', 'cartão', 'portão', 'violão', 'salão', 'leão', 'mamão', 'algodão',
+    'pão', 'grão', 'órgão', 'peão', 'ladrão', 'patrão', 'cidadão', 'alemão', 'campeão']
   var MASC_IN_A = ['dia', 'mapa', 'sofá', 'clima', 'planeta', 'idioma', 'tema', 'sistema',
     'problema', 'programa', 'telefonema', 'poema', 'cinema', 'drama', 'esquema']
   // Femeninos que no terminan en -a (y algunos en -o)
@@ -154,7 +161,7 @@
 
   function genderOf (w) {
     var s = isPlural(w) ? singularOf(w) : w
-    if (MASC_IN_A.indexOf(s) !== -1) return 'm'
+    if (MASC_IN_A.indexOf(s) !== -1 || MASC_EXTRA.indexOf(s) !== -1) return 'm'
     if (FEM_EXTRA.indexOf(s) !== -1) return 'f'
     if (/(a|ção|são|dade|tude|gem|ez|eza|ice|ie)$/.test(s)) return 'f'
     return 'm'
@@ -174,63 +181,10 @@
 
   function pick (arr, rnd) { return arr[Math.floor((rnd || Math.random)() * arr.length)] }
 
-  // ---------- Plantillas por categoría ----------
+  // ---------- Frases modelo (solo sustantivos: neutras y siempre correctas) ----------
   var NOUN_TEMPLATES = [
-    function (w, a) { return 'Ontem falamos sobre ' + a.o + ' ' + w + ' na aula.' },
-    function (w, a) { return 'Estou pensando ' + a.no + ' ' + w + ' desde ontem.' },
     function (w, a) { return 'O que você acha ' + a.do + ' ' + w + '?' },
-    function (w, a, p) { return cap(a.esse) + ' ' + w + (p ? ' são muito especiais' : ' é muito especial') + ' para mim.' },
-    function (w, a) { return 'Nunca tinha prestado atenção ' + a.no + ' ' + w + ' até hoje.' }
-  ]
-
-  var ADJ_SUBJECTS = {
-    ms: ['o João', 'o filme', 'o Pedro', 'o dia', 'o lugar'],
-    fs: ['a Maria', 'a cidade', 'a Ana', 'a viagem', 'a ideia'],
-    mp: ['os meninos', 'os filmes', 'os vizinhos', 'os dias', 'os lugares'],
-    fp: ['as meninas', 'as cidades', 'as vizinhas', 'as viagens', 'as ideias']
-  }
-
-  function adjForm (w) {
-    var plural = w.length > 4 && /(os|as|es)$/.test(w) && !INVARIABLE_S.test(w)
-    var base = plural ? w.replace(/s$/, '') : w
-    var g = /a$/.test(base) ? 'f' : (/o$/.test(base) ? 'm' : (Math.random() < 0.5 ? 'm' : 'f'))
-    return { g: g, p: plural }
-  }
-
-  var ADJ_TEMPLATES = [
-    function (w, s, p) { return 'Achei ' + s + ' muito ' + w + '.' },
-    function (w, s, p) { return cap(s) + (p ? ' são' : ' é') + ' ' + w + ', não acha?' },
-    function (w, s, p) { return 'Hoje ' + s + (p ? ' estão' : ' está') + ' ' + w + '.' },
-    function (w, s, p) { return 'Nunca imaginei que ' + s + (p ? ' fossem' : ' fosse') + ' tão ' + w + '.' },
-    function (w, s, p) { return cap(s) + (p ? ' parecem' : ' parece') + ' ' + w + ' hoje.' }
-  ]
-
-  var VERB_TEMPLATES = [
-    function (w) { return 'Amanhã eu vou ' + w + ' com meus amigos.' },
-    function (w) { return 'Você gosta de ' + w + '?' },
-    function (w) { return 'É importante ' + w + ' todos os dias.' },
-    function (w) { return 'Preciso ' + w + ' antes do fim de semana.' },
-    function (w) { return 'Ela começou a ' + w + ' no ano passado.' },
-    function (w) { return 'Não é fácil ' + w + ' quando estamos cansados.' },
-    function (w) { return 'Quero aprender a ' + w + ' melhor.' }
-  ]
-
-  var ADV_TEMPLATES = [
-    function (w) { return 'Ela resolveu o problema ' + w + '.' },
-    function (w) { return cap(w) + ', tudo deu certo no final.' },
-    function (w) { return 'Desafio: descreva como foi o seu dia usando «' + w + '».' }
-  ]
-
-  var CONNECTOR_TEMPLATES = [
-    function (w) { return 'Combine duas ideias com «' + w + '»: «Eu queria sair… ' + w + ' …»' },
-    function (w) { return 'Desafio: escreva uma frase sobre o seu dia usando «' + w + '».' }
-  ]
-
-  var EXPR_TEMPLATES = [
-    function (w) { return 'Ontem ouvi alguém dizer «' + w + '» no ônibus.' },
-    function (w) { return 'Quando algo assim acontece, a gente diz: «' + w + '».' },
-    function (w) { return 'Meu amigo brasileiro sempre fala «' + w + '».' },
-    function (w) { return 'Desafio: use «' + w + '» numa conversa hoje.' }
+    function (w, a) { return 'Ontem falamos sobre ' + a.o + ' ' + w + ' na aula.' }
   ]
 
   function curated (word) {
@@ -238,55 +192,72 @@
     return CURATED[key] ? CURATED[key].slice() : []
   }
 
-  /** Devuelve todas las frases posibles (curadas primero) para una palabra. */
-  function allExamples (word, category) {
+  function templates (word, category) {
+    if (category !== 'sustantivo') return []
     var w = String(word || '').trim()
+    if (w.indexOf(' ') !== -1) return []
     var lw = w.toLowerCase()
-    var out = curated(lw)
-    var a, p
-    switch (category) {
-      case 'sustantivo':
-        p = isPlural(lw)
-        a = articles(genderOf(lw), p)
-        NOUN_TEMPLATES.forEach(function (t) { out.push(t(w, a, p)) })
-        break
-      case 'adjetivo':
-        var f = adjForm(lw)
-        var subjects = ADJ_SUBJECTS[f.g + (f.p ? 'p' : 's')]
-        ADJ_TEMPLATES.forEach(function (t, i) { out.push(t(w, subjects[i % subjects.length], f.p)) })
-        break
-      case 'verbo':
-        VERB_TEMPLATES.forEach(function (t) { out.push(t(w)) })
-        break
-      case 'adverbio':
-        if (!out.length) ADV_TEMPLATES.forEach(function (t) { out.push(t(w)) })
-        break
-      case 'conector':
-        if (!out.length) CONNECTOR_TEMPLATES.forEach(function (t) { out.push(t(w)) })
-        break
-      case 'expresion':
-        if (!out.length) EXPR_TEMPLATES.forEach(function (t) { out.push(t(w)) })
-        break
+    var p = isPlural(lw)
+    var a = articles(genderOf(lw), p)
+    return NOUN_TEMPLATES.map(function (t) { return t(w, a, p) })
+  }
+
+  function real (word) {
+    return (root.Sentences && root.Sentences.get(word)) || []
+  }
+
+  /**
+   * Todos los ejemplos disponibles para una palabra, de mejor a peor:
+   * [{ pt, es, source: 'own' | 'tatoeba' | 'curated' | 'template' }]
+   * Las frases modelo solo se usan si no hay nada mejor.
+   */
+  function forWord (entry) {
+    var seen = {}
+    var out = []
+    function add (pt, es, source) {
+      pt = String(pt || '').trim()
+      var k = pt.toLowerCase()
+      if (!pt || seen[k]) return
+      seen[k] = true
+      out.push({ pt: pt, es: es || '', source: source })
     }
+    ;(entry.examples || []).forEach(function (x) { add(x, '', 'own') })
+    real(entry.word).forEach(function (x) { add(x.pt, x.es, 'tatoeba') })
+    curated(entry.word).forEach(function (x) { add(x, '', 'curated') })
+    if (!out.length) templates(entry.word, entry.category).forEach(function (x) { add(x, '', 'template') })
     return out
   }
 
   /**
-   * Ejemplo aleatorio. Si la palabra tiene ejemplos propios del usuario,
-   * se priorizan (60% de las veces).
+   * Un ejemplo al azar (o null si no hay ninguno). Los propios del usuario
+   * salen más seguido (60% de las veces si hay).
    */
-  function randomExample (entry, rnd) {
+  function randomItem (entry, rnd, exceptText) {
     rnd = rnd || Math.random
-    var own = (entry.examples || []).filter(Boolean)
-    if (own.length && rnd() < 0.6) return pick(own, rnd)
-    var gen = allExamples(entry.word, entry.category)
-    if (!gen.length) return own.length ? pick(own, rnd) : entry.word
-    return pick(gen, rnd)
+    var all = forWord(entry).filter(function (x) { return !exceptText || x.pt !== exceptText })
+    if (!all.length) return null
+    var own = all.filter(function (x) { return x.source === 'own' })
+    var others = all.filter(function (x) { return x.source !== 'own' })
+    if (own.length && (!others.length || rnd() < 0.6)) return pick(own, rnd)
+    return pick(others, rnd)
+  }
+
+  /** Compatibilidad: solo el texto en portugués ('' si no hay ejemplo). */
+  function randomExample (entry, rnd) {
+    var item = randomItem(entry, rnd)
+    return item ? item.pt : ''
+  }
+
+  /** Compatibilidad: frases escritas a mano y modelo (sin las de Tatoeba). */
+  function allExamples (word, category) {
+    return curated(word).concat(curated(word).length ? [] : templates(word, category))
   }
 
   var api = {
-    allExamples: allExamples,
+    forWord: forWord,
+    randomItem: randomItem,
     randomExample: randomExample,
+    allExamples: allExamples,
     genderOf: genderOf,
     isPlural: isPlural
   }

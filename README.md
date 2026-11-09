@@ -10,6 +10,7 @@ Una app web pequeña (HTML + CSS + JavaScript, sin dependencias) para armar tu p
 - **Sugerencia de significado**: al escribir la palabra, aparecen posibles traducciones al español (servicio gratuito [MyMemory](https://mymemory.translated.net/); si no responde o se agotó su límite diario, se usa [Apertium](https://apertium.org/) como respaldo). Se toca una para usarla como significado; nunca se completa sola. Las consultas se guardan en caché en el navegador.
 - **Clasificación automática** en *sustantivo, adjetivo, verbo, adverbio, conector* o *expresión*. Mientras escribes, te muestra la sugerencia, el motivo (por ejemplo: termina en "-mente") y qué tan segura está. Puedes elegir otra categoría al cargarla o cambiarla después desde la lista.
 - **Lista** con filtros por categoría, buscador, pronunciación (🔊, usa la voz pt-BR del navegador) y ejemplos de uso.
+- **Ejemplos de uso reales**: para cada palabra se buscan frases escritas por personas en [Tatoeba](https://tatoeba.org) (licencia CC BY 2.0 FR), con su traducción al español cuando existe. Orden de prioridad: tus propios ejemplos, frases de Tatoeba, ejemplos escritos a mano para conectores, adverbios y expresiones frecuentes y, solo para sustantivos sin nada mejor, dos frases modelo neutras. Para verbos, adjetivos y adverbios no se inventan frases: si no hay ninguna, la app te invita a escribir la tuya.
 - **Notificaciones al azar**: actívalas y elige un rango (por ejemplo, cada 15 a 45 minutos). La app elige una palabra al azar (prefiere las que viste menos veces) y te manda un ejemplo de uso.
 - **Desafío** (pestaña 🎯): la app elige una palabra al azar (prefiere las que más te cuestan); eliges su categoría y escribes una frase con ella. Cuenta aciertos y fallos (por categoría y por frase), precisión, racha y muestra las palabras que más te cuestan. La frase se acepta si usa la palabra o una forma conjugada/derivada (falar → falei, ir → vou, cidade → cidades); la gramática no se corrige, pero se muestra un ejemplo para comparar. Los puntajes se guardan en cada palabra, así que se sincronizan entre dispositivos (la racha es de cada dispositivo).
 - **Exportar a PDF**: arma una versión para imprimir, agrupada por categoría (palabra, significado y un ejemplo), y abre el diálogo de impresión, donde se elige "Guardar como PDF". Exporta lo que se ve en la lista: si hay un filtro o búsqueda activos, solo esas palabras.
@@ -65,7 +66,7 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 ## Limitaciones
 
 - La clasificación usa **reglas heurísticas** (listas de palabras frecuentes y sufijos), no un diccionario completo. Funciona bien con infinitivos (`-ar/-er/-ir`), adverbios en `-mente`, sufijos típicos (`-ção`, `-dade`, `-vel`, `-oso`…) y los conectores y expresiones más comunes. En los casos dudosos la confianza aparece baja, y conviene revisar la categoría.
-- Los conectores, adverbios y expresiones frecuentes tienen **ejemplos escritos a mano**. Para el resto se usan plantillas que respetan el género y el número (o/a, no/na, do/da…), así que algunas frases pueden quedar raras. Lo mejor es agregar tus propios ejemplos, que tienen prioridad.
+- Las frases de Tatoeba las escriben voluntarios: casi siempre son correctas, pero algunas pueden ser de Portugal y no de Brasil, o no tener traducción al español. Si una palabra no aparece en Tatoeba (o el servicio no responde), no se muestra ejemplo; lo mejor es agregar el tuyo, que siempre tiene prioridad.
 - Las sugerencias de significado son traducciones automáticas: conviene revisarlas. MyMemory permite un número limitado de consultas gratis por día y por conexión (en datos móviles esa conexión puede ser compartida con otras personas). Si se agota, la app usa Apertium durante unas horas; si ninguno responde, lo avisa y se puede escribir el significado a mano.
 - Las notificaciones llegan **mientras la pestaña esté abierta**, aunque esté en segundo plano. Para recibirlas con el navegador cerrado haría falta un servidor de *push*.
 
@@ -76,7 +77,8 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 | `index.html` | Estructura de la página |
 | `styles.css` | Estilos (incluye modo oscuro y diseño para celular) |
 | `js/classifier.js` | Clasificador heurístico |
-| `js/examples.js` | Generador de ejemplos de uso |
+| `js/sentences.js` | Frases reales desde Tatoeba (con caché) |
+| `js/examples.js` | Ejemplos de uso: propios, Tatoeba, escritos a mano |
 | `js/app.js` | Estado, formulario, lista, notificaciones |
 | `js/phrases.js` | Frases de motivación, chistes, expresiones, consejos y curiosidades de Brasil |
 | `js/social.js` | Amigos, publicaciones compartidas y likes |

@@ -408,3 +408,10 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
 .small-link { font-size: .78rem; padding: 0 2px; }
 .comment-form { display: flex; gap: 6px; }
 .comment-form input { flex: 1; min-width: 0; padding: 7px 10px; font-size: .92rem; }
+/* Ejemplos */
+.example-box { flex: 1 1 100%; }
+.example-es { margin: 2px 0 0; font-size: .88rem; color: var(--muted); }
+.example-empty { margin: 0; font-size: .9rem; color: var(--muted); }
+.example-source { display: inline-block; margin-top: 2px; font-size: .72rem; font-weight: 600; color: var(--muted); text-decoration: none; text-transform: uppercase; letter-spacing: .03em; }
+a.example-source:hover { color: var(--primary); text-decoration: underline; }
+.toast-es { font-size: .85rem; opacity: .75; margin: -2px 0 6px; }

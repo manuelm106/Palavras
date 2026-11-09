@@ -259,8 +259,8 @@
     }
     saveLocal()
 
-    var model = (w.examples || []).filter(function (x) { return fold(x) !== fold(sentence) })[0] ||
-      Examples.randomExample({ word: w.word, category: w.category, examples: [] })
+    var others = Examples.forWord(w).filter(function (x) { return fold(x.pt) !== fold(sentence) && x.source !== 'template' })
+    var modelItem = others.filter(function (x) { return x.source !== 'own' })[0] || others[0] || null
     var box = $('ch-ex-result')
     box.hidden = false
     box.className = 'ch-result ' + (result.ok ? 'ok' : 'fail')
@@ -268,11 +268,13 @@
     box.appendChild(document.createTextNode(result.ok
       ? '✔ ¡Bien! Tu frase usa «' + w.word + '».' + ($('ch-save').checked ? ' La guardé en tu lista.' : '')
       : '✘ ' + result.reason))
-    var ex = document.createElement('div')
-    ex.className = 'ch-model'
-    ex.setAttribute('lang', 'pt-BR')
-    ex.textContent = 'Un ejemplo: ' + model
-    box.appendChild(ex)
+    if (modelItem) {
+      var ex = document.createElement('div')
+      ex.className = 'ch-model'
+      ex.setAttribute('lang', 'pt-BR')
+      ex.textContent = 'Un ejemplo: ' + modelItem.pt + (modelItem.es ? ' (' + modelItem.es + ')' : '')
+      box.appendChild(ex)
+    }
 
     $('ch-sentence').disabled = true
     $('ch-form').querySelector('button').disabled = true
