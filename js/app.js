@@ -76,9 +76,8 @@
   }
 
   // ---------- Pronunciación ----------
-  // En Safari (iPhone) las voces cargan tarde, y llamar a speak() justo
-  // después de cancel() falla en silencio. Por eso: se precargan las voces,
-  // solo se cancela si algo está sonando y, en ese caso, se espera un momento.
+  // En Safari (iPhone) las voces cargan tarde y speak() puede fallar en silencio
+  // justo después de cancel(). Por eso se precargan las voces y hay un reintento.
   var currentUtterance = null // referencia para que no se libere a mitad de frase
 
   function ptVoice () {
@@ -105,16 +104,23 @@
     u.rate = 0.9
     var voice = ptVoice()
     if (voice) u.voice = voice
+    var started = false
+    u.onstart = function () { started = true }
     u.onend = u.onerror = function () { if (currentUtterance === u) currentUtterance = null }
     currentUtterance = u
 
-    if (synth.paused) synth.resume() // iOS puede quedar en pausa al volver de segundo plano
-    if (synth.speaking || synth.pending) {
+    // Safari exige llamar a speak() dentro del mismo toque (sin esperas previas).
+    // Si quedó "trabado" (por ejemplo, al volver de segundo plano), se cancela y,
+    // si la frase no arranca, se reintenta: el toque ya habilitó el audio.
+    if (synth.paused) synth.resume()
+    if (synth.speaking || synth.pending) synth.cancel()
+    synth.speak(u)
+    setTimeout(function () {
+      if (started || currentUtterance !== u) return
       synth.cancel()
-      setTimeout(function () { synth.speak(u) }, 120)
-    } else {
+      if (synth.paused) synth.resume()
       synth.speak(u)
-    }
+    }, 400)
   }
 
   // ---------- Formulario ----------
