@@ -224,7 +224,29 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
 
 .account { margin-top: 12px; }
 .signed-in { display: flex; align-items: flex-start; gap: 10px; }
-.signed-in img { border-radius: 50%; flex: none; }
+.avatar-btn {
+  position: relative; flex: none; width: 44px; height: 44px; padding: 0; border: 0;
+  border-radius: 50%; background: var(--surface); cursor: pointer;
+  box-shadow: 0 0 0 2px var(--border);
+}
+.avatar-btn img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; display: block; }
+.avatar-emoji { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 1.6rem; line-height: 1; }
+.avatar-emoji.initial { background: var(--primary); color: var(--primary-ink); font-size: 1.2rem; font-weight: 700; }
+.avatar-edit {
+  position: absolute; right: -4px; bottom: -4px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--primary); color: var(--primary-ink); font-size: .7rem; display: grid; place-items: center;
+  border: 2px solid var(--bg);
+}
+.avatar-menu {
+  margin-top: 8px; padding: 10px 12px; max-width: 360px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border); box-shadow: 0 6px 24px rgba(0, 0, 0, .12);
+}
+.avatar-menu-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.avatar-menu .muted { margin: 10px 0 4px; }
+.avatar-upload { display: inline-block; margin: 0; font-weight: 600; }
+.avatar-emojis { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 4px; margin-bottom: 8px; }
+.avatar-emoji-option { font-size: 1.4rem; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 4px 0; cursor: pointer; }
+.avatar-emoji-option:hover { border-color: var(--primary); }
 .user-info { min-width: 0; flex: 1; }
 .user-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .user-quote {

@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0b7a53">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=13">
+  <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body>
   <header class="site-header">
@@ -18,12 +18,26 @@
       <div id="account" class="account" hidden>
         <button id="signin" type="button" class="btn">Iniciar sesión con Google para sincronizar</button>
         <div id="signed-in" class="signed-in" hidden>
-          <img id="avatar" alt="" width="36" height="36" referrerpolicy="no-referrer" hidden>
+          <button id="avatar-btn" type="button" class="avatar-btn" title="Cambiar foto de perfil" aria-label="Cambiar foto de perfil" aria-expanded="false" aria-controls="avatar-menu">
+            <img id="avatar" alt="" width="44" height="44" referrerpolicy="no-referrer" hidden>
+            <span id="avatar-emoji" class="avatar-emoji" aria-hidden="true" hidden></span>
+            <span class="avatar-edit" aria-hidden="true">✎</span>
+          </button>
           <div class="user-info">
             <div class="user-line">
               <strong id="user-name"></strong>
               <span id="sync-status" class="muted small" aria-live="polite"></span>
               <button id="signout" type="button" class="link">Cerrar sesión</button>
+            </div>
+            <div id="avatar-menu" class="avatar-menu" hidden>
+              <div class="avatar-menu-head">
+                <strong>Tu foto de perfil</strong>
+                <button id="avatar-close" type="button" class="link" aria-label="Cerrar">✕</button>
+              </div>
+              <label class="btn small avatar-upload">📷 Subir una foto<input id="avatar-file" type="file" accept="image/*" hidden></label>
+              <p class="muted small">O elige un emoji:</p>
+              <div id="avatar-emojis" class="avatar-emojis"></div>
+              <button id="avatar-google" type="button" class="link">Usar la foto de mi cuenta de Google</button>
             </div>
             <div id="user-quote" class="user-quote" hidden>
               <span id="quote-kind" class="quote-kind"></span>
@@ -172,13 +186,13 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="print-view" class="print-view" aria-hidden="true"></div>
 
-  <script src="js/classifier.js?v=13"></script>
-  <script src="js/examples.js?v=13"></script>
-  <script src="js/phrases.js?v=13"></script>
-  <script src="js/app.js?v=13"></script>
-  <script src="js/translate.js?v=13"></script>
-  <script src="js/challenge.js?v=13"></script>
-  <script src="js/firebase-config.js?v=13"></script>
-  <script type="module" src="js/sync.js?v=13"></script>
+  <script src="js/classifier.js?v=14"></script>
+  <script src="js/examples.js?v=14"></script>
+  <script src="js/phrases.js?v=14"></script>
+  <script src="js/app.js?v=14"></script>
+  <script src="js/translate.js?v=14"></script>
+  <script src="js/challenge.js?v=14"></script>
+  <script src="js/firebase-config.js?v=14"></script>
+  <script type="module" src="js/sync.js?v=14"></script>
 </body>
 </html>

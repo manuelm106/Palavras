@@ -171,6 +171,7 @@ async function init () {
 
   async function firstLoad (snap, userId) {
     const data = snap.exists() ? snap.data() : null
+    setProfile(data && data.profile)
     let remote = data && data.words ? Object.values(data.words) : []
     let migrated = 0
 
@@ -206,6 +207,59 @@ async function init () {
     if (migrated) console.info(`Migradas ${migrated} palabras al formato nuevo.`)
   }
 
+  // ---------- Foto de perfil ----------
+  // Se guarda en el mismo documento (campo `profile`), así se ve en todos los dispositivos.
+  // Las fotos se achican en el dispositivo a 160×160 px (unos 15 KB).
+  const EMOJIS = ['🦜', '🐆', '🐢', '🦋', '🌴', '🌞', '🏖️', '⚽', '☕', '🎸', '🍍', '🎭', '🥥', '🌺', '🐒', '📚']
+  const emojiBox = $('#avatar-emojis')
+  EMOJIS.forEach((e) => {
+    const b = document.createElement('button')
+    b.type = 'button'
+    b.className = 'avatar-emoji-option'
+    b.textContent = e
+    b.setAttribute('aria-label', 'Usar ' + e + ' como foto')
+    b.addEventListener('click', () => saveProfile({ type: 'emoji', value: e }))
+    emojiBox.appendChild(b)
+  })
+
+  function toggleMenu (open) {
+    $('#avatar-menu').hidden = !open
+    $('#avatar-btn').setAttribute('aria-expanded', String(open))
+  }
+  $('#avatar-btn').addEventListener('click', () => toggleMenu($('#avatar-menu').hidden))
+  $('#avatar-close').addEventListener('click', () => toggleMenu(false))
+  $('#avatar-google').addEventListener('click', () => saveProfile({ type: 'google' }))
+
+  $('#avatar-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      setStatus('Procesando la foto…')
+      const dataUrl = await resizeImage(file, 160)
+      await saveProfile({ type: 'photo', value: dataUrl })
+    } catch (err) {
+      console.error(err)
+      app.toast('No se pudo usar esa imagen. Prueba con otra foto (JPG o PNG).', 'info')
+      setStatus('')
+    }
+  })
+
+  async function saveProfile (p) {
+    if (!uid || !ready) { app.toast('Espera a que termine de cargar tu lista.', 'info'); return }
+    const previous = profile
+    setProfile(p) // se muestra enseguida
+    toggleMenu(false)
+    try {
+      await fs.updateDoc(ref, { profile: p })
+      setStatus('Foto actualizada ✔')
+    } catch (err) {
+      console.error(err)
+      setProfile(previous)
+      app.toast('No se pudo guardar la foto (' + (err.code || 'error') + ').', 'info')
+    }
+  }
+
   // ---------- Sesión y escucha de cambios ----------
   auth.onAuthStateChanged(a, (user) => {
     if (unsubscribe) { unsubscribe(); unsubscribe = null }
@@ -230,6 +284,7 @@ async function init () {
       }
       const data = snap.exists() ? snap.data() : null
       const remote = data && data.words ? Object.values(data.words) : []
+      setProfile(data && data.profile)
 
       // Si hay cambios locales sin subir, se aplican encima de la versión remota.
       let words = remote
@@ -255,17 +310,92 @@ async function init () {
   }
 }
 
+let currentUser = null
+let profile = null // { type: 'photo' | 'emoji' | 'google', value }
+const PROFILE_CACHE = 'palabras-pt:perfil'
+
 function renderUser (user) {
+  currentUser = user
   $('#signin').hidden = !!user
   $('#signed-in').hidden = !user
+  $('#avatar-menu').hidden = true
   if (user) {
     $('#user-name').textContent = user.displayName || user.email || 'Tu cuenta'
-    const img = $('#avatar')
-    if (user.photoURL) { img.src = user.photoURL; img.hidden = false } else img.hidden = true
+    // Muestra la última foto conocida mientras llega la de la nube.
+    let cached = null
+    try { cached = JSON.parse(localStorage.getItem(PROFILE_CACHE) || 'null') } catch (e) {}
+    profile = cached && cached.uid === user.uid ? cached.profile : null
+    renderAvatar()
     showQuote() // una frase nueva en cada inicio de sesión (y cada vez que se abre la app)
   } else {
+    profile = null
     setStatus('')
   }
+}
+
+function setProfile (p) {
+  profile = p || null
+  try {
+    if (currentUser) localStorage.setItem(PROFILE_CACHE, JSON.stringify({ uid: currentUser.uid, profile }))
+  } catch (e) { /* sin espacio */ }
+  renderAvatar()
+}
+
+function renderAvatar () {
+  const img = $('#avatar')
+  const emoji = $('#avatar-emoji')
+  const user = currentUser
+  if (!user) return
+  img.hidden = true
+  emoji.hidden = true
+  if (profile && profile.type === 'photo' && profile.value) {
+    img.src = profile.value
+    img.hidden = false
+  } else if (profile && profile.type === 'emoji' && profile.value) {
+    emoji.textContent = profile.value
+    emoji.className = 'avatar-emoji'
+    emoji.hidden = false
+  } else if (user.photoURL) {
+    img.src = user.photoURL
+    img.hidden = false
+  } else {
+    // Sin foto: la inicial del nombre.
+    emoji.textContent = (user.displayName || user.email || '?').trim().charAt(0).toUpperCase()
+    emoji.className = 'avatar-emoji initial'
+    emoji.hidden = false
+  }
+}
+
+// Recorta la imagen al centro (cuadrada) y la achica para guardarla liviana.
+function resizeImage (file, size) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file)
+    const image = new Image()
+    image.onload = () => {
+      try {
+        const side = Math.min(image.naturalWidth, image.naturalHeight)
+        const sx = (image.naturalWidth - side) / 2
+        const sy = (image.naturalHeight - side) / 2
+        const canvas = document.createElement('canvas')
+        canvas.width = size
+        canvas.height = size
+        const ctx = canvas.getContext('2d')
+        ctx.fillStyle = '#fff'
+        ctx.fillRect(0, 0, size, size)
+        ctx.drawImage(image, sx, sy, side, side, 0, 0, size, size)
+        let quality = 0.85
+        let data = canvas.toDataURL('image/jpeg', quality)
+        while (data.length > 60000 && quality > 0.4) {
+          quality -= 0.15
+          data = canvas.toDataURL('image/jpeg', quality)
+        }
+        URL.revokeObjectURL(url)
+        resolve(data)
+      } catch (err) { URL.revokeObjectURL(url); reject(err) }
+    }
+    image.onerror = () => { URL.revokeObjectURL(url); reject(new Error('imagen no válida')) }
+    image.src = url
+  })
 }
 
 // ---------- Frase del día (motivación, chiste, expresión o consejo) ----------
