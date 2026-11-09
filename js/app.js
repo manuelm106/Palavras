@@ -580,7 +580,10 @@
       saveLocal()
       render()
     },
-    toast: toast
+    toast: toast,
+    save: save,
+    speak: speak,
+    categories: CATS
   }
 
   // ---------- Inicio ----------

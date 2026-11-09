@@ -252,3 +252,52 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
   .p-word { font-weight: 700; }
   .p-example { font-style: italic; color: #333; }
 }
+
+/* ---------- Pestañas ---------- */
+.tabs { display: flex; gap: 6px; margin-top: 16px; border-bottom: 1px solid var(--border); }
+.tab {
+  font: inherit; font-weight: 600; background: none; border: 0; color: var(--muted);
+  padding: 8px 12px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px;
+}
+.tab[aria-selected="true"] { color: var(--text); border-bottom-color: var(--primary); }
+
+/* ---------- Desafío ---------- */
+.challenge-layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: 20px; padding-top: 16px; padding-bottom: 48px; align-items: start;
+}
+@media (max-width: 800px) { .challenge-layout { grid-template-columns: minmax(0, 1fr); } }
+.ch-word-row { display: flex; align-items: center; gap: 8px; }
+.ch-word { font-size: 2rem; overflow-wrap: anywhere; }
+.ch-hint { min-height: 1.6em; }
+.ch-step { font-size: .95rem; margin: 18px 0 8px; }
+.ch-cats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 480px) { .ch-cats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ch-cat {
+  font: inherit; font-weight: 600; padding: 10px 8px; border-radius: 8px; cursor: pointer;
+  background: var(--bg); color: var(--text); border: 2px solid var(--c);
+}
+.ch-cat:hover:not(:disabled) { background: var(--c); color: var(--surface); }
+.ch-cat:disabled { cursor: default; opacity: .45; }
+.ch-cat.correct { opacity: 1; background: var(--c-verbo); border-color: var(--c-verbo); color: var(--surface); }
+.ch-cat.wrong { opacity: 1; background: var(--danger); border-color: var(--danger); color: var(--surface); }
+.ch-result { margin: 10px 0 0; padding: 8px 12px; border-radius: 8px; font-weight: 600; }
+.ch-result.ok { background: color-mix(in srgb, var(--c-verbo) 14%, transparent); }
+.ch-result.fail { background: color-mix(in srgb, var(--danger) 14%, transparent); }
+.ch-model { font-weight: 400; font-style: italic; margin-top: 4px; }
+#ch-sentence {
+  width: 100%; font: inherit; padding: 9px 11px; border: 1px solid var(--border);
+  border-radius: 8px; background: var(--bg); color: var(--text); resize: vertical;
+}
+.check { display: flex; align-items: center; gap: 6px; font-weight: 400; }
+.ch-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.score-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.score { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; }
+.score span { font-size: 1.6rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.score small { color: var(--muted); }
+.score.ok span { color: var(--c-verbo); }
+.score.fail span { color: var(--danger); }
+.score-table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: .9rem; }
+.score-table th, .score-table td { padding: 4px 6px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.score-table th:first-child, .score-table td:first-child { text-align: left; }
+.hard-list { margin: 0 0 8px; padding-left: 20px; font-size: .9rem; }

@@ -11,6 +11,7 @@ Una app web pequeña (HTML + CSS + JavaScript, sin dependencias) para armar tu p
 - **Clasificación automática** en *sustantivo, adjetivo, verbo, adverbio, conector* o *expresión*. Mientras escribes, te muestra la sugerencia, el motivo (por ejemplo: termina en "-mente") y qué tan segura está. Puedes elegir otra categoría al cargarla o cambiarla después desde la lista.
 - **Lista** con filtros por categoría, buscador, pronunciación (🔊, usa la voz pt-BR del navegador) y ejemplos de uso.
 - **Notificaciones al azar**: actívalas y elige un rango (por ejemplo, cada 15 a 45 minutos). La app elige una palabra al azar (prefiere las que viste menos veces) y te manda un ejemplo de uso.
+- **Desafío** (pestaña 🎯): la app elige una palabra al azar (prefiere las que más te cuestan); eliges su categoría y escribes una frase con ella. Cuenta aciertos y fallos (por categoría y por frase), precisión, racha y muestra las palabras que más te cuestan. La frase se acepta si usa la palabra o una forma conjugada/derivada (falar → falei, ir → vou, cidade → cidades); la gramática no se corrige, pero se muestra un ejemplo para comparar. Los puntajes se guardan en cada palabra, así que se sincronizan entre dispositivos (la racha es de cada dispositivo).
 - **Exportar a PDF**: arma una versión para imprimir, agrupada por categoría (palabra, significado y un ejemplo), y abre el diálogo de impresión, donde se elige "Guardar como PDF". Exporta lo que se ve en la lista: si hay un filtro o búsqueda activos, solo esas palabras.
 - **Exportar/importar** la lista en JSON. Todo se guarda en el `localStorage` del navegador.
 - **Sincronización opcional** entre dispositivos: inicias sesión con Google y ves la misma lista en el celular y en la computadora (usa Firebase; ver abajo). La configuración de notificaciones sigue siendo de cada dispositivo.
@@ -72,6 +73,7 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 | `js/classifier.js` | Clasificador heurístico |
 | `js/examples.js` | Generador de ejemplos de uso |
 | `js/app.js` | Estado, formulario, lista, notificaciones |
+| `js/challenge.js` | Modo desafío y puntajes |
 | `js/translate.js` | Sugerencias de significado (MyMemory) |
 | `js/firebase-config.js` | Configuración de Firebase (opcional) |
 | `js/sync.js` | Inicio de sesión con Google y sincronización con Firestore |

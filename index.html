@@ -24,10 +24,14 @@
           <button id="signout" type="button" class="link">Cerrar sesión</button>
         </div>
       </div>
+      <nav class="tabs" role="tablist" aria-label="Secciones">
+        <button type="button" role="tab" class="tab" id="tab-words" aria-controls="view-words" aria-selected="true">📚 Mi vocabulario</button>
+        <button type="button" role="tab" class="tab" id="tab-challenge" aria-controls="view-challenge" aria-selected="false">🎯 Desafío</button>
+      </nav>
     </div>
   </header>
 
-  <main class="wrap layout">
+  <main id="view-words" class="wrap layout" role="tabpanel" aria-labelledby="tab-words">
     <section class="panel" aria-labelledby="add-title">
       <h2 id="add-title">Agregar palabra</h2>
       <form id="word-form" autocomplete="off">
@@ -93,6 +97,65 @@
     </section>
   </main>
 
+  <main id="view-challenge" class="wrap challenge-layout" role="tabpanel" aria-labelledby="tab-challenge" hidden>
+    <section class="panel challenge-panel" aria-labelledby="ch-title">
+      <h2 id="ch-title">Desafío</h2>
+      <div id="ch-empty" class="empty" hidden>Agrega al menos 2 palabras a tu lista para empezar el desafío.</div>
+
+      <div id="ch-round" hidden>
+        <div class="ch-word-row">
+          <strong id="ch-word" class="ch-word" lang="pt-BR"></strong>
+          <button id="ch-speak" type="button" class="icon-btn" title="Escuchar" aria-label="Escuchar la palabra">🔊</button>
+        </div>
+        <div class="ch-hint">
+          <button id="ch-hint-btn" type="button" class="link">Ver significado</button>
+          <span id="ch-meaning" class="muted" hidden></span>
+        </div>
+
+        <h3 class="ch-step">1. ¿Qué categoría es?</h3>
+        <div id="ch-cats" class="ch-cats"></div>
+        <p id="ch-cat-result" class="ch-result" aria-live="polite" hidden></p>
+
+        <div id="ch-step2" hidden>
+          <h3 class="ch-step">2. Escribe una frase usando la palabra</h3>
+          <form id="ch-form" autocomplete="off">
+            <textarea id="ch-sentence" rows="2" lang="pt-BR" placeholder="Escribe tu frase en portugués…" aria-label="Tu frase de ejemplo"></textarea>
+            <label class="check"><input id="ch-save" type="checkbox" checked> Guardar mi frase en la lista si es correcta</label>
+            <button type="submit" class="btn primary">Comprobar</button>
+          </form>
+          <div id="ch-ex-result" class="ch-result" aria-live="polite" hidden></div>
+        </div>
+
+        <div class="ch-actions">
+          <button id="ch-skip" type="button" class="link">Saltar (no cuenta)</button>
+          <button id="ch-next" type="button" class="btn" hidden>Siguiente palabra →</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel" aria-labelledby="score-title">
+      <h2 id="score-title">Puntajes</h2>
+      <div class="score-grid">
+        <div class="score ok"><span id="sc-ok">0</span><small>aciertos</small></div>
+        <div class="score fail"><span id="sc-fail">0</span><small>fallos</small></div>
+        <div class="score"><span id="sc-acc">–</span><small>precisión</small></div>
+        <div class="score"><span id="sc-streak">0</span><small>racha (mejor <b id="sc-best">0</b>)</small></div>
+      </div>
+      <table class="score-table">
+        <thead><tr><th></th><th>✔</th><th>✘</th></tr></thead>
+        <tbody>
+          <tr><td>Categoría</td><td id="sc-cat-ok">0</td><td id="sc-cat-fail">0</td></tr>
+          <tr><td>Ejemplo</td><td id="sc-ex-ok">0</td><td id="sc-ex-fail">0</td></tr>
+        </tbody>
+      </table>
+      <h3 class="ch-step">Las que más te cuestan</h3>
+      <ol id="sc-hard" class="hard-list"></ol>
+      <p id="sc-hard-empty" class="muted small">Todavía no hay fallos. ¡Bien!</p>
+      <button id="sc-reset" type="button" class="link danger">Reiniciar puntajes</button>
+      <p class="muted small">La categoría se compara con la que tiene guardada la palabra en tu lista. La frase se comprueba revisando que use la palabra (o una forma conjugada); la gramática no se corrige: compara con el ejemplo que aparece.</p>
+    </aside>
+  </main>
+
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="print-view" class="print-view" aria-hidden="true"></div>
 
@@ -100,6 +163,7 @@
   <script src="js/examples.js"></script>
   <script src="js/app.js"></script>
   <script src="js/translate.js"></script>
+  <script src="js/challenge.js"></script>
   <script src="js/firebase-config.js"></script>
   <script type="module" src="js/sync.js"></script>
 </body>
