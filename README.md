@@ -20,6 +20,7 @@ Una app web pequeña (HTML + CSS + JavaScript, sin dependencias) para armar tu p
 - **Foto de perfil**: tocando la foto junto al nombre se puede subir una foto propia, elegir un emoji o volver a la foto de la cuenta de Google. La foto se recorta y achica en el dispositivo (160×160 px, unos 5–15 KB) y se guarda junto con la lista, así que se ve en todos los dispositivos (no hace falta Firebase Storage).
 - **Frase al iniciar sesión**: debajo del nombre del usuario aparece una frase al azar en portugués, con su traducción: motivación, chiste, expresión, consejo (falsos amigos, pronunciación, cómo estudiar) o curiosidad de Brasil. Cambia cada vez que se abre la app, no repite las últimas y se puede escuchar o pedir otra.
 - **Amigos** (pestaña 👥, con la sesión iniciada): se agrega a otra persona escribiendo su correo exacto; le llega una solicitud que puede aceptar o rechazar. Con el botón 📤 se comparte una palabra (con significado, categoría y el ejemplo que se ve) o la frase del día. Los amigos la ven en **Novedades**, pueden darle ❤️ y agregar la palabra a su propia lista. En «Lo que compartí» se ve la foto y el nombre de quién dio like (los nuevos, marcados); al recibir un like con la app abierta aparece un aviso, y la pestaña muestra un número con los likes nuevos y las solicitudes pendientes. Cada publicación tiene **comentarios** (💬): los ven y escriben el autor y los amigos con quienes se compartió; cada uno puede borrar los suyos y el autor puede borrar cualquiera en lo suyo. Al recibir un comentario aparece un aviso y suma al número de la pestaña. También se puede dejar de compartir (se borran también los comentarios). Solo los amigos ven lo compartido; la lista completa sigue siendo privada.
+- **Ayuda** (botón ❓ arriba): preguntas frecuentes y un formulario «Escríbenos» para sugerencias, reportar algo que no funciona o pedir algo (con correo opcional para responder e información técnica opcional). Se puede enviar con o sin sesión. Los mensajes llegan a una **bandeja** dentro de la misma app, visible solo para las cuentas administradoras (ver abajo).
 - **Sincronización opcional** entre dispositivos: inicias sesión con Google y ves la misma lista en el celular y en la computadora (usa Firebase; ver abajo). La configuración de notificaciones sigue siendo de cada dispositivo.
 
 ## Cómo usarla
@@ -57,7 +58,16 @@ Estos datos de configuración no son secretos; lo que protege los datos son las 
 - `posts/{id}`: lo compartido; lo ven el autor y los amigos de `audience`; los amigos solo pueden poner o quitar su propio like, y el contador de comentarios solo sube o baja de a uno.
 - `posts/{id}/comments/{id}`: comentarios (hasta 500 caracteres); los leen y escriben el autor y la audiencia; nadie puede escribir a nombre de otro.
 
-Las reglas están probadas con el emulador de Firestore (62 casos de acceso permitido y denegado).
+- `feedback/{id}`: mensajes de ayuda; cualquiera puede enviar uno (con límites de tamaño y campos), solo los administradores los leen, cambian su estado o borran.
+- `admins/{uid}`: cuentas administradoras; solo se crean desde la consola de Firebase.
+
+Las reglas están probadas con el emulador de Firestore (85 casos de acceso permitido y denegado).
+
+### Ver los mensajes de ayuda (cuenta administradora)
+
+1. En la consola de Firebase, **Authentication → Users**: copiar el **User UID** de tu cuenta.
+2. **Firestore Database → Data → Start collection**: ID de la colección `admins`; ID del documento: tu UID; agregar un campo cualquiera (por ejemplo `name` = tu nombre) y guardar.
+3. Recargar la app con tu sesión iniciada: el botón ❓ Ayuda muestra la bandeja de mensajes y un número con los nuevos.
 
 **Cómo se guarda:** toda la lista de cada usuario está en un solo documento, `users/{uid}`, con el campo `words` (un mapa `id → palabra`) y el campo `profile` (la foto de perfil). Así, abrir la app cuesta 1 lectura y cada cambio 1 escritura; los cambios seguidos (por ejemplo, las dos respuestas de una ronda del desafío) se agrupan en una sola escritura. El contador de notificaciones no se sincroniza (es de cada dispositivo). Un documento admite hasta 1 MiB: alcanza para unas 3.000 palabras con ejemplos; si se supera, la app lo avisa. Las listas guardadas con la versión anterior (`users/{uid}/words/{id}`) se migran solas al iniciar sesión.
 
@@ -84,6 +94,7 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 | `js/examples.js` | Ejemplos de uso: propios, Tatoeba, escritos a mano |
 | `js/app.js` | Estado, formulario, lista, notificaciones |
 | `js/phrases.js` | Frases de motivación, chistes, expresiones, consejos y curiosidades de Brasil |
+| `js/help.js` | Ayuda, formulario de contacto y bandeja de mensajes |
 | `js/social.js` | Amigos, publicaciones compartidas y likes |
 | `firestore.rules` | Reglas de seguridad de Firestore |
 | `js/challenge.js` | Modo desafío y puntajes |

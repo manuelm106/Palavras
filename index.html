@@ -8,12 +8,15 @@
   <meta name="theme-color" content="#0b7a53">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=28">
+  <link rel="stylesheet" href="styles.css?v=30">
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
-      <h1><img src="icon.svg" alt="" width="32" height="32"> Palavras</h1>
+      <div class="title-row">
+        <h1><img src="icon.svg" alt="" width="32" height="32"> Palavras</h1>
+        <button id="help-btn" type="button" class="help-btn" aria-haspopup="dialog" aria-controls="help-dialog">❓ Ayuda <span id="help-badge" class="badge-count" hidden></span></button>
+      </div>
       <p class="tagline">Tu vocabulario de portugués, clasificado y con ejemplos que te llegan cuando menos lo esperas.</p>
       <div id="account" class="account" hidden>
         <button id="signin" type="button" class="btn">Iniciar sesión con Google para sincronizar</button>
@@ -228,19 +231,80 @@
     </div>
   </main>
 
+  <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
+    <div class="help-head">
+      <h2 id="help-title">Ayuda</h2>
+      <button id="help-close" type="button" class="icon-btn" aria-label="Cerrar">✕</button>
+    </div>
+
+    <section id="inbox" class="inbox" hidden aria-labelledby="inbox-title">
+      <h3 id="inbox-title">📥 Mensajes recibidos <span id="inbox-count" class="badge-count" hidden></span></h3>
+      <div class="inbox-filters" role="group" aria-label="Filtrar mensajes">
+        <button type="button" class="chip active" data-status="open">Pendientes</button>
+        <button type="button" class="chip" data-status="resolved">Resueltos</button>
+        <button type="button" class="chip" data-status="all">Todos</button>
+      </div>
+      <p id="inbox-empty" class="muted small">No hay mensajes.</p>
+      <ul id="inbox-list" class="inbox-list"></ul>
+    </section>
+
+    <section aria-labelledby="faq-title">
+      <h3 id="faq-title">Preguntas frecuentes</h3>
+      <div class="faq">
+        <details><summary>¿Cómo agrego palabras?</summary>
+          <p>Escribe la palabra o expresión en portugués en «Agregar palabra». La app sugiere la categoría y posibles significados; puedes cambiarlos antes de agregarla o después, en la tarjeta (tocando el significado o eligiendo otra categoría).</p></details>
+        <details><summary>¿La categoría o el género pueden estar mal?</summary>
+          <p>Sí: se deducen con reglas (terminaciones y listas de palabras), no con un diccionario completo. Cuando la app no está segura lo indica (confianza baja, o «?» en el género). Para corregir el género, toca la etiqueta «masculino / femenino».</p></details>
+        <details><summary>¿De dónde salen los ejemplos?</summary>
+          <p>Primero tus propios ejemplos; después frases reales de Tatoeba (con traducción) y de Wiktionary, y algunos ejemplos escritos a mano. Si no hay ninguno, puedes escribir el tuyo en «Mis ejemplos».</p></details>
+        <details><summary>¿Cómo funcionan las notificaciones?</summary>
+          <p>Actívalas en «Notificaciones» y elige cada cuántos minutos. Llegan mientras la app esté abierta (aunque esté en segundo plano). En el iPhone, si no oyes el audio, revisa el interruptor de silencio.</p></details>
+        <details><summary>¿Cómo veo mi lista en otro dispositivo?</summary>
+          <p>Inicia sesión con Google arriba: tu lista, puntajes y foto se sincronizan en todos tus dispositivos.</p></details>
+        <details><summary>¿Cómo agrego amigos? ¿Ven mis palabras?</summary>
+          <p>En la pestaña 👥 Amigos, escribe el correo de tu amigo (tiene que haber iniciado sesión al menos una vez). Tu lista es privada: tus amigos solo ven lo que compartes con el botón 📤.</p></details>
+        <details><summary>¿Cómo guardo mi lista?</summary>
+          <p>Debajo de la lista: «Exportar a PDF» para imprimir o guardar, y «Exportar lista (JSON)» para tener una copia que puedes volver a importar.</p></details>
+      </div>
+    </section>
+
+    <section aria-labelledby="contact-title">
+      <h3 id="contact-title">Escríbenos</h3>
+      <p class="muted small">¿Una idea, algo que no funciona o algo que te gustaría tener? Cuéntanos.</p>
+      <form id="feedback-form" class="feedback-form" autocomplete="off">
+        <label for="fb-type">Tipo de mensaje</label>
+        <select id="fb-type" required>
+          <option value="sugerencia">💡 Sugerencia o idea</option>
+          <option value="problema">🐞 Algo no funciona</option>
+          <option value="pedido">🙋 Quiero pedir algo</option>
+          <option value="otro">💬 Otro</option>
+        </select>
+        <label for="fb-message">Mensaje</label>
+        <textarea id="fb-message" rows="5" maxlength="2000" required placeholder="Escribe aquí… Si algo no funciona, cuéntanos qué hiciste y qué pasó."></textarea>
+        <p id="fb-count" class="muted small fb-count">0 / 2000</p>
+        <label for="fb-email">Tu correo, para responderte <span class="optional">(opcional)</span></label>
+        <input id="fb-email" type="email" inputmode="email" maxlength="200" placeholder="correo@ejemplo.com">
+        <label class="check"><input id="fb-tech" type="checkbox" checked> Incluir información técnica (navegador y versión de la app)</label>
+        <button type="submit" class="btn primary">Enviar mensaje</button>
+        <p id="fb-status" class="small" aria-live="polite"></p>
+      </form>
+    </section>
+  </dialog>
+
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="print-view" class="print-view" aria-hidden="true"></div>
 
-  <script src="js/classifier.js?v=28"></script>
-  <script src="js/sentences.js?v=28"></script>
-  <script src="js/examples.js?v=28"></script>
-  <script src="js/gender-es.js?v=28"></script>
-  <script src="js/phrases.js?v=28"></script>
-  <script src="js/app.js?v=28"></script>
-  <script src="js/translate.js?v=28"></script>
-  <script src="js/challenge.js?v=28"></script>
-  <script src="js/firebase-config.js?v=28"></script>
-  <script type="module" src="js/sync.js?v=28"></script>
-  <script type="module" src="js/social.js?v=28"></script>
+  <script src="js/classifier.js?v=30"></script>
+  <script src="js/sentences.js?v=30"></script>
+  <script src="js/examples.js?v=30"></script>
+  <script src="js/gender-es.js?v=30"></script>
+  <script src="js/phrases.js?v=30"></script>
+  <script src="js/app.js?v=30"></script>
+  <script src="js/translate.js?v=30"></script>
+  <script src="js/challenge.js?v=30"></script>
+  <script src="js/firebase-config.js?v=30"></script>
+  <script type="module" src="js/sync.js?v=30"></script>
+  <script type="module" src="js/social.js?v=30"></script>
+  <script type="module" src="js/help.js?v=30"></script>
 </body>
 </html>

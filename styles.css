@@ -78,7 +78,7 @@ body {
 label { display: block; font-weight: 600; font-size: .9rem; margin: 12px 0 4px; }
 .optional { font-weight: 400; color: var(--muted); }
 
-input[type="text"], input[type="search"], input[type="number"], select {
+input[type="text"], input[type="search"], input[type="number"], input[type="email"], select {
   width: 100%;
   font: inherit;
   padding: 9px 11px;
@@ -449,3 +449,50 @@ a.example-source:hover { color: var(--primary); text-decoration: underline; }
 .chip[aria-pressed] { }
 @media print { .p-diff { font-size: 8.5pt; font-weight: 700; color: #b45309; margin-top: 1pt; } }
 .cat-genero { --c: var(--c-adverbio); }
+
+/* ---------- Ayuda ---------- */
+.title-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.help-btn {
+  font: inherit; font-weight: 600; font-size: .9rem; cursor: pointer; border-radius: 999px;
+  padding: 6px 12px; background: var(--surface); color: var(--text); border: 1px solid var(--border);
+  display: inline-flex; align-items: center; gap: 6px; flex: none;
+}
+.help-btn:hover { border-color: var(--primary); }
+.help-dialog {
+  width: min(640px, calc(100vw - 24px)); max-height: calc(100vh - 32px); padding: 0;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text);
+}
+.help-dialog::backdrop { background: rgba(0, 0, 0, .45); }
+.help-dialog > section { padding: 0 18px 16px; }
+.help-head {
+  display: flex; justify-content: space-between; align-items: center; padding: 14px 18px 6px;
+  position: sticky; top: 0; background: var(--surface); z-index: 1;
+}
+.help-head h2 { margin: 0; font-size: 1.2rem; }
+.help-dialog h3 { font-size: 1rem; margin: 12px 0 8px; display: flex; align-items: center; gap: 6px; }
+.faq details { border-bottom: 1px solid var(--border); padding: 8px 0; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq p { margin: 6px 0 2px; color: var(--muted); font-size: .92rem; }
+.feedback-form textarea {
+  width: 100%; font: inherit; padding: 9px 11px; border: 1px solid var(--border); border-radius: 8px;
+  background: var(--bg); color: var(--text); resize: vertical;
+}
+.feedback-form label { margin-top: 10px; }
+.feedback-form .check { margin-top: 10px; }
+.fb-count { text-align: right; margin: 2px 0 0; }
+.fb-status.ok { color: var(--c-verbo); font-weight: 600; }
+.fb-status.warn { color: var(--danger); font-weight: 600; }
+.inbox { background: color-mix(in srgb, var(--primary) 6%, transparent); border-bottom: 1px solid var(--border); margin-bottom: 4px; padding-top: 4px !important; }
+.inbox-filters { display: flex; gap: 6px; margin-bottom: 8px; }
+.inbox-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.inbox-item { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--danger); border-radius: 8px; padding: 8px 12px; }
+.inbox-item.status-seen { border-left-color: var(--c-adverbio); }
+.inbox-item.status-resolved { border-left-color: var(--c-verbo); opacity: .8; }
+.inbox-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+.inbox-head .muted { margin: 0; }
+.inbox-status { font-size: .72rem; font-weight: 700; text-transform: uppercase; color: var(--muted); }
+.inbox-message { margin: 6px 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.inbox-tech code { font-size: .75rem; overflow-wrap: anywhere; }
+.inbox-tech summary { cursor: pointer; font-size: .8rem; color: var(--muted); }
+.inbox-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; margin-left: -4px; }
+@media print { .help-dialog { display: none !important; } }
