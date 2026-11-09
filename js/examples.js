@@ -159,12 +159,50 @@
     return w.slice(0, -1)
   }
 
-  function genderOf (w) {
-    var s = isPlural(w) ? singularOf(w) : w
-    if (MASC_IN_A.indexOf(s) !== -1 || MASC_EXTRA.indexOf(s) !== -1) return 'm'
-    if (FEM_EXTRA.indexOf(s) !== -1) return 'f'
-    if (/(a|ção|são|dade|tude|gem|ez|eza|ice|ie)$/.test(s)) return 'f'
-    return 'm'
+  // Masculinos frecuentes con terminaciones que no lo indican (-e, -l, -z, -s, -r...).
+  var MASC_SURE = ['leite', 'dente', 'pente', 'nome', 'homem', 'jardim', 'papel', 'hotel', 'café',
+    'chá', 'sol', 'mar', 'lápis', 'ônibus', 'nariz', 'rapaz', 'giz', 'xadrez', 'pé', 'jacaré', 'tênis',
+    'vírus', 'país', 'mês', 'pai', 'céu', 'museu', 'chapéu', 'troféu', 'pneu', 'fim', 'som', 'tom', 'trem',
+    'bem', 'time', 'filme', 'clube', 'bife', 'parque', 'tanque', 'golpe', 'norte', 'sul', 'leste', 'oeste',
+    'sangue', 'presente', 'ambiente', 'acidente', 'continente', 'tapete', 'sorvete', 'chocolate', 'tomate',
+    'abacate', 'cheque', 'toque', 'quintal', 'animal', 'jornal', 'sinal', 'casal', 'hospital', 'metal',
+    'final', 'açúcar', 'lugar', 'bar', 'colar', 'altar', 'olhar', 'jantar', 'almoço', 'lar', 'ar',
+    'arroz', 'cartaz', 'nó', 'avô', 'pó', 'sofá', 'guaraná', 'maracujá', 'fubá', 'irmão', 'cupim',
+    'motor', 'computador', 'amor', 'calor', 'sabor', 'valor', 'favor', 'humor', 'interior', 'exterior',
+    'elevador', 'tambor', 'leque', 'mel', 'anel', 'pastel', 'pincel', 'aluguel', 'cheiro', 'dia']
+  // Femeninos frecuentes con terminaciones que no lo indican.
+  var FEM_SURE = ['alface', 'atriz', 'imperatriz', 'cicatriz', 'matriz', 'perdiz', 'tv', 'mulher',
+    'colher', 'avó', 'pá', 'fé', 'maré', 'chaminé', 'libido', 'catedral', 'vogal', 'espiral', 'cal',
+    'tosse', 'neve', 'vontade', 'saudade', 'cidade', 'sede', 'rede', 'parede', 'árvore', 'nuvem', 'ordem',
+    'margem', 'garagem', 'viagem', 'imagem', 'mensagem', 'paisagem', 'coragem']
+  // Comunes de dos géneros (o/a estudante).
+  var BOTH = ['estudante', 'cliente', 'parente', 'gerente', 'presidente', 'paciente', 'colega', 'jovem',
+    'intérprete', 'agente', 'adolescente', 'imigrante', 'representante', 'atleta', 'cônjuge', 'chefe',
+    'personagem', 'bebê', 'modelo', 'indígena', 'herege', 'gerente', 'docente', 'participante']
+
+  /**
+   * Género de un sustantivo: { g: 'm' | 'f' | 'mf', sure, plural, article }.
+   * `sure` es false cuando la terminación no alcanza para saberlo.
+   */
+  function genderInfo (word) {
+    var w = String(word || '').trim().toLowerCase().split(' ')[0]
+    var plural = isPlural(w)
+    var s = plural ? singularOf(w) : w
+    var g = 'm'
+    var sure = false
+    if (BOTH.indexOf(s) !== -1 || /ista$/.test(s)) { g = 'mf'; sure = true } else if (MASC_IN_A.indexOf(s) !== -1 || MASC_EXTRA.indexOf(s) !== -1 || MASC_SURE.indexOf(s) !== -1) { g = 'm'; sure = true } else if (FEM_EXTRA.indexOf(s) !== -1 || FEM_SURE.indexOf(s) !== -1) { g = 'f'; sure = true } else if (/(ção|são|dade|tude|gem|eza|ice)$/.test(s) || (/ez$/.test(s) && !/ês$/.test(s))) { g = 'f'; sure = true } else if (/(or|ão)$/.test(s)) { g = 'm'; sure = true } else if (/o$/.test(s)) { g = 'm'; sure = true } else if (/(ma|ta)$/.test(s)) { g = 'f'; sure = false } else if (/a$/.test(s)) { g = 'f'; sure = true } else { g = 'm'; sure = false }
+    return { g: g, sure: sure, plural: plural, article: articleFor(g, plural) }
+  }
+
+  function articleFor (g, plural) {
+    if (g === 'mf') return plural ? 'os/as' : 'o/a'
+    if (g === 'f') return plural ? 'as' : 'a'
+    return plural ? 'os' : 'o'
+  }
+
+  function genderOf (w, override) {
+    var g = override || genderInfo(w).g
+    return g === 'f' ? 'f' : 'm'
   }
 
   function articles (g, plural) {
@@ -192,13 +230,13 @@
     return CURATED[key] ? CURATED[key].slice() : []
   }
 
-  function templates (word, category) {
+  function templates (word, category, gender) {
     if (category !== 'sustantivo') return []
     var w = String(word || '').trim()
     if (w.indexOf(' ') !== -1) return []
     var lw = w.toLowerCase()
     var p = isPlural(lw)
-    var a = articles(genderOf(lw), p)
+    var a = articles(genderOf(lw, gender), p)
     return NOUN_TEMPLATES.map(function (t) { return t(w, a, p) })
   }
 
@@ -224,7 +262,7 @@
     ;(entry.examples || []).forEach(function (x) { add(x, '', 'own') })
     real(entry.word).forEach(function (x) { add(x.pt, x.es, 'tatoeba') })
     curated(entry.word).forEach(function (x) { add(x, '', 'curated') })
-    if (!out.length) templates(entry.word, entry.category).forEach(function (x) { add(x, '', 'template') })
+    if (!out.length) templates(entry.word, entry.category, entry.gender).forEach(function (x) { add(x, '', 'template') })
     return out
   }
 
@@ -259,6 +297,8 @@
     randomExample: randomExample,
     allExamples: allExamples,
     genderOf: genderOf,
+    genderInfo: genderInfo,
+    articleFor: articleFor,
     isPlural: isPlural
   }
 

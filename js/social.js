@@ -457,13 +457,19 @@ async function deletePost (post) {
 // API para el resto de la app (botón 📤 de cada palabra y de la frase del día).
 window.PalavrasSocial = {
   shareWord (w, example) {
-    createPost({
+    const data = {
       type: 'word',
       word: w.word,
       category: w.category,
       meaning: w.meaning || '',
       example: example || (w.examples || [])[0] || ''
-    }, '«' + w.word + '»')
+    }
+    if (w.category === 'sustantivo' && app.nounGender) {
+      const g = app.nounGender(w)
+      data.gender = g.g
+      data.article = g.article
+    }
+    createPost(data, '«' + w.word + '»')
   },
   sharePhrase (q) {
     createPost({ type: 'phrase', kind: q.label, icon: q.icon, pt: q.pt, es: q.es }, 'la frase')
@@ -594,6 +600,7 @@ function postBody (p) {
   return el('div', { class: 'post-body' }, [
     el('div', { class: 'word-title' }, [
       el('span', { class: 'dot cat-' + p.category, 'aria-hidden': 'true' }),
+      p.article ? el('span', { class: 'article', lang: 'pt-BR', text: p.article }) : null,
       el('strong', { lang: 'pt-BR', text: p.word }),
       el('span', { class: 'badge cat-' + p.category, text: cats[p.category] ? cats[p.category].label : '' }),
       p.meaning ? el('span', { class: 'meaning', text: '— ' + p.meaning }) : null
@@ -641,7 +648,7 @@ function renderFeed () {
             class: 'link',
             text: '➕ A mi lista',
             onclick: () => {
-              const added = app.addWord({ word: p.word, category: p.category, meaning: p.meaning, examples: p.example ? [p.example] : [] })
+              const added = app.addWord({ word: p.word, category: p.category, meaning: p.meaning, gender: p.gender, examples: p.example ? [p.example] : [] })
               app.toast(added ? 'Agregaste «' + p.word + '» a tu lista.' : '«' + p.word + '» ya está en tu lista.', added ? 'ok' : 'info')
             }
           })

@@ -417,3 +417,16 @@ a.example-source:hover { color: var(--primary); text-decoration: underline; }
 .toast-es { font-size: .85rem; opacity: .75; margin: -2px 0 6px; }
 .example-note { flex: 1 1 100%; margin: 0; }
 .example-note:empty { display: none; }
+/* Género de los sustantivos */
+.article { color: var(--muted); font-weight: 600; font-size: 1rem; }
+.gender-badge {
+  font: inherit; font-size: .72rem; font-weight: 700; cursor: pointer; border-radius: 999px;
+  padding: 1px 8px; border: 1px solid currentColor; background: transparent; align-self: center;
+}
+.gender-badge.g-m { color: var(--c-sustantivo); }
+.gender-badge.g-f { color: var(--c-adjetivo); }
+.gender-badge.g-mf { color: var(--c-conector); }
+.gender-badge.unsure { border-style: dashed; }
+.gender-wrap { display: inline-flex; align-self: center; }
+.gender-options { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+.gender-badge.current { background: var(--bg); box-shadow: inset 0 0 0 1px currentColor; }

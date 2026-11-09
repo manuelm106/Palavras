@@ -246,6 +246,51 @@
     ]
   }
 
+  // ---------- Género de los sustantivos ----------
+  var GENDER_LABEL = { m: 'masculino', f: 'femenino', mf: 'masc. o fem.' }
+
+  // Lo que eligió el usuario manda; si no, se deduce de la palabra.
+  function nounGender (w) {
+    var info = Examples.genderInfo(w.word)
+    if (w.gender && GENDER_LABEL[w.gender]) {
+      return { g: w.gender, sure: true, manual: true, article: Examples.articleFor(w.gender, info.plural) }
+    }
+    return info
+  }
+
+  // Al tocar la etiqueta aparecen las tres opciones; la elegida queda guardada.
+  function genderBadge (w) {
+    var info = nounGender(w)
+    var wrap = el('span', { class: 'gender-wrap' })
+    var badge = el('button', {
+      type: 'button',
+      class: 'gender-badge g-' + info.g + (info.sure ? '' : ' unsure'),
+      title: (info.sure ? '' : 'No es seguro: revísalo. ') + 'Toca para elegir el género.',
+      'aria-label': 'Género: ' + GENDER_LABEL[info.g] + (info.sure ? '' : ', sin confirmar') + '. Tocar para elegir.',
+      'aria-expanded': 'false',
+      onclick: function () {
+        var opts = el('span', { class: 'gender-options', role: 'group', 'aria-label': 'Elegir género' },
+          ['m', 'f', 'mf'].map(function (g) {
+            return el('button', {
+              type: 'button',
+              class: 'gender-badge g-' + g + (g === info.g ? ' current' : ''),
+              onclick: function () {
+                w.gender = g
+                save()
+                render()
+                highlight(w.id)
+                toast('«' + w.word + '»: ' + GENDER_LABEL[g] + ' (' + nounGender(w).article + ' ' + w.word + ').', 'ok')
+              }
+            }, [GENDER_LABEL[g]])
+          }))
+        wrap.replaceChildren(opts)
+        opts.firstChild.focus()
+      }
+    }, [GENDER_LABEL[info.g] + (info.sure ? '' : ' ?')])
+    wrap.appendChild(badge)
+    return wrap
+  }
+
   function renderItem (w) {
     var current = Examples.randomItem(w)
     var loading = false
@@ -350,7 +395,9 @@
       el('div', { class: 'card-head' }, [
         el('div', { class: 'word-title' }, [
           el('span', { class: 'dot cat-' + w.category, 'aria-hidden': 'true' }),
+          w.category === 'sustantivo' ? el('span', { class: 'article', lang: 'pt-BR', text: nounGender(w).article }) : null,
           el('strong', { lang: 'pt-BR', text: w.word }),
+          w.category === 'sustantivo' ? genderBadge(w) : null,
           w.meaning ? el('span', { class: 'meaning', text: '— ' + w.meaning }) : null
         ]),
         el('div', { class: 'card-actions' }, [
@@ -601,7 +648,7 @@
         var chosen = own[0] || stablePick(items, w.word) || null
         var example = chosen ? chosen.pt + (chosen.es ? ' — ' + chosen.es : '') : ''
         return el('tr', {}, [
-          el('td', { class: 'p-word', lang: 'pt-BR', text: w.word }),
+          el('td', { class: 'p-word', lang: 'pt-BR', text: (w.category === 'sustantivo' ? nounGender(w).article + ' ' : '') + w.word }),
           el('td', { text: w.meaning || '' }),
           el('td', { class: 'p-example', lang: 'pt-BR', text: example })
         ])
@@ -690,6 +737,7 @@
     speak: speak,
     categories: CATS,
     highlight: highlight,
+    nounGender: nounGender,
     // Agrega una palabra (por ejemplo, compartida por un amigo). Devuelve false si ya estaba.
     addWord: function (data) {
       var key = Classifier.normalize(data.word)
@@ -705,6 +753,7 @@
         examples: (data.examples || []).filter(Boolean).map(String),
         createdAt: Date.now()
       }
+      if (data.gender && GENDER_LABEL[data.gender]) entry.gender = data.gender
       state.words.unshift(entry)
       save()
       render()
