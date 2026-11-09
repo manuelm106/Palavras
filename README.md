@@ -34,12 +34,16 @@ Mientras `js/firebase-config.js` tenga `window.FIREBASE_CONFIG = null`, la app f
 1. Crear un proyecto en https://console.firebase.google.com (Google Analytics no hace falta).
 2. **Authentication → Comenzar → Método de acceso → Google** → habilitar y guardar.
 3. **Authentication → Configuración → Dominios autorizados** → agregar `manuelm106.github.io`.
-4. **Firestore Database → Crear base de datos** (modo producción) y, en **Reglas**, pegar:
+4. **Firestore Database → Crear base de datos** (modo producción, ID `(default)`) y, en **Reglas**, pegar:
 
    ```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
+       match /users/{uid} {
+         allow read, write: if request.auth != null && request.auth.uid == uid;
+       }
+       // Formato anterior (una palabra por documento): solo para la migración automática.
        match /users/{uid}/words/{wordId} {
          allow read, write: if request.auth != null && request.auth.uid == uid;
        }
@@ -53,7 +57,11 @@ Mientras `js/firebase-config.js` tenga `window.FIREBASE_CONFIG = null`, la app f
    window.FIREBASE_CONFIG = { apiKey: '…', authDomain: '…', projectId: '…', storageBucket: '…', messagingSenderId: '…', appId: '…' }
    ```
 
-Estos datos de configuración no son secretos; lo que protege la lista son las reglas del paso 4: cada usuario solo puede leer y escribir sus propias palabras (`users/{uid}/words`).
+Estos datos de configuración no son secretos; lo que protege la lista son las reglas del paso 4: cada usuario solo puede leer y escribir su propio documento (`users/{uid}`).
+
+**Cómo se guarda:** toda la lista de cada usuario está en un solo documento, `users/{uid}`, con el campo `words` (un mapa `id → palabra`). Así, abrir la app cuesta 1 lectura y cada cambio 1 escritura; los cambios seguidos (por ejemplo, las dos respuestas de una ronda del desafío) se agrupan en una sola escritura. El contador de notificaciones no se sincroniza (es de cada dispositivo). Un documento admite hasta 1 MiB: alcanza para unas 3.000 palabras con ejemplos; si se supera, la app lo avisa. Las listas guardadas con la versión anterior (`users/{uid}/words/{id}`) se migran solas al iniciar sesión.
+
+Con el plan gratuito de Firebase (unas 50.000 lecturas y 20.000 escrituras por día), esto alcanza para cientos de personas usándola a diario.
 
 Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía se suman a la cuenta. Al cerrar sesión, la lista se quita de ese dispositivo (sigue guardada en la cuenta).
 

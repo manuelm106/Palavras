@@ -13,7 +13,8 @@
       words: [],
       settings: { enabled: false, minMinutes: 15, maxMinutes: 45 },
       nextAt: null,
-      lastWordId: null
+      lastWordId: null,
+      shown: {} // id -> veces mostrada en notificaciones (solo en este dispositivo)
     }
   }
 
@@ -23,11 +24,19 @@
       if (!raw) return defaultState()
       var s = JSON.parse(raw)
       var d = defaultState()
+      var words = Array.isArray(s.words) ? s.words : []
+      var shown = s.shown && typeof s.shown === 'object' ? s.shown : {}
+      // Versiones anteriores guardaban el contador dentro de cada palabra.
+      words.forEach(function (w) {
+        if (w.shown) shown[w.id] = (shown[w.id] || 0) + w.shown
+        delete w.shown
+      })
       return {
-        words: Array.isArray(s.words) ? s.words : [],
+        words: words,
         settings: Object.assign(d.settings, s.settings || {}),
         nextAt: s.nextAt || null,
-        lastWordId: s.lastWordId || null
+        lastWordId: s.lastWordId || null,
+        shown: shown
       }
     } catch (e) {
       return defaultState()
@@ -156,8 +165,7 @@
       autoCategory: guess.category,
       meaning: $('#meaning').value.trim(),
       examples: example ? [example] : [],
-      createdAt: Date.now(),
-      shown: 0
+      createdAt: Date.now()
     }
     state.words.unshift(entry)
     save()
@@ -335,7 +343,7 @@
     if (words.length === 1) return words[0]
     // Prioriza palabras que se mostraron menos veces y evita repetir la última.
     var pool = words.filter(function (w) { return w.id !== state.lastWordId })
-    var weights = pool.map(function (w) { return 1 / (1 + (w.shown || 0)) })
+    var weights = pool.map(function (w) { return 1 / (1 + (state.shown[w.id] || 0)) })
     var total = weights.reduce(function (a, b) { return a + b }, 0)
     var r = Math.random() * total
     for (var i = 0; i < pool.length; i++) {
@@ -349,9 +357,9 @@
     var w = pickWord()
     if (!w) return
     var example = Examples.randomExample(w)
-    w.shown = (w.shown || 0) + 1
+    state.shown[w.id] = (state.shown[w.id] || 0) + 1
     state.lastWordId = w.id
-    save()
+    saveLocal() // el contador no se sincroniza: ahorra escrituras en la nube
 
     var title = w.word + ' · ' + CATS[w.category].label + (w.meaning ? ' (' + w.meaning + ')' : '')
     var visible = document.visibilityState === 'visible'
@@ -547,7 +555,7 @@
           state.words.push({
             id: uid(), word: String(w.word), category: category, autoCategory: category,
             meaning: w.meaning ? String(w.meaning) : '', examples: Array.isArray(w.examples) ? w.examples.map(String) : [],
-            createdAt: w.createdAt || Date.now(), shown: 0
+            createdAt: w.createdAt || Date.now()
           })
           known[Classifier.normalize(w.word)] = true
           added++
