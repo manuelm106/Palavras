@@ -99,8 +99,9 @@
 
   function checkSentence (w, sentence) {
     var st = tokens(sentence)
-    if (st.length < 3) return { ok: false, reason: 'La frase es muy corta: usa al menos 3 palabras.' }
-    if (fold(sentence).trim() === fold(w.word).trim()) return { ok: false, reason: 'Escribe una frase completa, no solo la palabra.' }
+    // Problemas de formato: no cuentan como intento, se puede corregir la frase.
+    if (fold(sentence).trim() === fold(w.word).trim()) return { ok: false, retry: true, reason: 'Escribe una frase completa, no solo la palabra.' }
+    if (st.length < 3) return { ok: false, retry: true, reason: 'La frase es muy corta: usa al menos 3 palabras. Corrígela y vuelve a comprobar.' }
     var parts = tokens(w.word)
     var ok
     if (parts.length === 1) {
@@ -224,6 +225,14 @@
     if (!sentence) { $('ch-sentence').focus(); return }
 
     var result = checkSentence(w, sentence)
+    if (result.retry) {
+      var hint = $('ch-ex-result')
+      hint.hidden = false
+      hint.className = 'ch-result warn'
+      hint.textContent = '✎ ' + result.reason
+      $('ch-sentence').focus()
+      return
+    }
     current.exAnswered = true
     current.exOk = result.ok
     record(result.ok ? 'exOk' : 'exFail')

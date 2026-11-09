@@ -301,3 +301,4 @@ input:focus, select:focus, button:focus-visible { outline: 2px solid var(--prima
 .score-table th, .score-table td { padding: 4px 6px; text-align: right; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
 .score-table th:first-child, .score-table td:first-child { text-align: left; }
 .hard-list { margin: 0 0 8px; padding-left: 20px; font-size: .9rem; }
+.ch-result.warn { background: color-mix(in srgb, var(--c-adverbio) 16%, transparent); }
