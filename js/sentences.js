@@ -13,7 +13,7 @@
 (function (root) {
   'use strict'
 
-  var CACHE_KEY = 'palabras-pt:frases-reales'
+  var CACHE_KEY = 'palabras-pt:frases-reales:v2' // v2: se descartan los resultados de cuando Tatoeba fallaba
   var MAX_CACHE = 1500
   var RETRY_EMPTY_MS = 7 * 24 * 3600 * 1000
   var MAX_SENTENCES = 6
@@ -56,17 +56,13 @@
   function parse (data, word) {
     var items = (data && (data.results || data.data || data.sentences)) || []
     if (!Array.isArray(items)) return []
-    var w = fold(word)
-    var root = w.split(' ')[0]
-    root = root.length > 5 ? root.slice(0, root.length - 2) : root
     var out = []
     var seen = {}
     items.forEach(function (it) {
       var text = String((it && it.text) || '').trim()
       if (!text || text.length > 140) return
       if (it.lang && it.lang !== 'por') return
-      // Debe usar la palabra (o una forma de la misma raíz).
-      if (fold(text).indexOf(root) === -1) return
+      if (!usesWord(text, word)) return
       var k = fold(text)
       if (seen[k]) return
       seen[k] = true
@@ -74,9 +70,34 @@
       collectSpanish(it.translations, es)
       out.push({ pt: text, es: es[0] || '', src: 'tatoeba' })
     })
-    // Primero las que tienen traducción y son más cortas.
-    out.sort(function (a, b) { return (b.es ? 1 : 0) - (a.es ? 1 : 0) || a.pt.length - b.pt.length })
+    // Primero las que tienen traducción y un largo cómodo (4 a 12 palabras).
+    out.sort(function (a, b) { return score(b) - score(a) })
     return out.slice(0, MAX_SENTENCES)
+  }
+
+  function score (x) {
+    var n = x.pt.split(/\s+/).length
+    var s = x.es ? 10 : 0
+    if (n >= 4 && n <= 12) s += 6
+    else if (n === 3 || (n > 12 && n <= 18)) s += 3
+    else if (n <= 2) s -= 4
+    if (/^["“]/.test(x.pt)) s -= 2 // diálogos entre comillas: menos claros
+    return s
+  }
+
+  // ¿La frase usa la palabra? Para verbos acepta formas conjugadas (raíz);
+  // en expresiones basta con las palabras después de la primera (que suele ser el verbo).
+  function usesWord (text, word) {
+    var t = ' ' + fold(text).replace(/[^a-z0-9ç\s-]/g, ' ') + ' '
+    var parts = fold(word).split(/\s+/).filter(Boolean)
+    if (parts.length > 1) {
+      var rest = parts.slice(1).filter(function (p) { return p.length > 2 })
+      if (!rest.length) rest = parts
+      return rest.every(function (p) { return t.indexOf(' ' + p) !== -1 })
+    }
+    var w = parts[0] || ''
+    var root = /(ar|er|ir)$/.test(w) && w.length > 4 ? w.slice(0, -2) : w.length > 5 ? w.slice(0, -2) : w
+    return t.indexOf(' ' + root) !== -1
   }
 
   function fetchJSON (url) {
@@ -90,24 +111,22 @@
       }, function (err) { clearTimeout(timer); throw err })
   }
 
+  // API de Tatoeba (api.tatoeba.org): permite consultas desde el navegador.
+  // (La API anterior, tatoeba.org/api_v0, no lo permite: el navegador la bloquea.)
   function endpoints (word, sortRandom) {
-    var multi = word.indexOf(' ') !== -1
-    var q = encodeURIComponent(multi ? '"' + word + '"' : '=' + word)
-    if (sortRandom) {
-      return [
-        'https://api.tatoeba.org/unstable/sentences?lang=por&q=' + q + '&showtrans=spa&sort=random&limit=30',
-        'https://tatoeba.org/es/api_v0/search?from=por&orphans=no&unapproved=no&sort=random&query=' + q
-      ]
-    }
-    return [
-      // API oficial nueva
-      'https://api.tatoeba.org/unstable/sentences?lang=por&q=' + q + '&trans:lang=spa&showtrans=spa&sort=relevance&limit=20',
-      // API anterior
-      'https://tatoeba.org/es/api_v0/search?from=por&to=spa&orphans=no&unapproved=no&sort=relevance&query=' + q,
-      // Sin exigir traducción (por si no hay ninguna en español)
-      'https://tatoeba.org/es/api_v0/search?from=por&orphans=no&unapproved=no&sort=relevance&query=' + q
-    ]
+    // Expresiones sin comillas: así también aparecen formas conjugadas («Darei um jeito»).
+    var q = encodeURIComponent(word.indexOf(' ') !== -1 ? word : '=' + word)
+    var sort = sortRandom ? 'random' : 'relevance'
+    var base = ['https://api.tatoeba.org/v1/sentences', 'https://api.tatoeba.org/unstable/sentences']
+    var urls = []
+    base.forEach(function (b) {
+      urls.push(b + '?lang=por&q=' + q + '&showtrans=matching&trans:lang=spa&sort=' + sort + '&limit=50')
+    })
+    // Sin exigir traducción al español (por si no hay ninguna).
+    urls.push(base[0] + '?lang=por&q=' + q + '&showtrans=none&sort=' + sort + '&limit=50')
+    return urls
   }
+
 
   // ---------- Wiktionary ----------
   function stripHtml (html) {
@@ -117,9 +136,6 @@
 
   function parseWiktionary (data, word) {
     var entries = (data && data.pt) || []
-    var w = fold(word)
-    var root = w.split(' ')[0]
-    root = root.length > 5 ? root.slice(0, root.length - 2) : root
     var out = []
     var seen = {}
     entries.forEach(function (entry) {
@@ -128,7 +144,7 @@
         if (!list.length) list = def.examples || []
         list.forEach(function (ex) {
           var text = stripHtml(ex)
-          if (!text || text.length > 160 || fold(text).indexOf(root) === -1) return
+          if (!text || text.length > 160 || !usesWord(text, word)) return
           var k = fold(text)
           if (seen[k]) return
           seen[k] = true

@@ -33,13 +33,14 @@
   }
 
   // Extrae traducciones únicas y razonables de la respuesta de MyMemory.
-  function parse (data, query) {
+  // allowSame: aceptar una traducción idéntica a la palabra (casa → casa).
+  function parse (data, query, allowSame) {
     var out = []
     var seen = {}
     function add (t) {
       var clean = String(t || '').trim().replace(/^[\s"'«“]+|[\s"'»”.]+$/g, '')
       var key = norm(clean)
-      if (!key || seen[key] || key === norm(query)) return
+      if (!key || seen[key] || (!allowSame && key === norm(query))) return
       if (/MYMEMORY|QUERY LENGTH|INVALID/i.test(clean) || clean.length > 60) return
       seen[key] = true
       out.push(lowerFirst(clean))
@@ -129,9 +130,10 @@
     return fetchJSON(url).then(function (data) {
       if (Number(data && data.responseStatus) !== 200) throw new Error('apertium ' + (data && data.responseStatus))
       var t = String(data.responseData && data.responseData.translatedText || '').trim()
-      // Apertium marca con * (o # / @) las palabras que no conoce.
+      // Apertium marca con * (o # / @) las palabras que no conoce; si no la marca,
+      // una traducción idéntica es válida (muchas palabras se escriben igual).
       if (!t || /[*#@]/.test(t)) return []
-      return parse({ responseData: { translatedText: t }, matches: [] }, query)
+      return parse({ responseData: { translatedText: t }, matches: [] }, query, true)
     })
   }
 
