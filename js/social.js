@@ -24,6 +24,12 @@ let unsubFeed = null
 let unsubMine = null
 let knownIncoming = null
 let prevLikes = null // postId -> Set de uids, para avisar de likes nuevos
+let prevComments = null // postId -> lastCommentAt, para avisar de comentarios nuevos
+// Comentarios: se cargan solo para las conversaciones abiertas.
+const openThreads = new Set()
+const threadData = new Map() // postId -> comentarios
+const threadUnsub = new Map() // postId -> función para dejar de escuchar
+const drafts = new Map() // postId -> texto que se está escribiendo
 let likesSeenAt = 0 // hasta cuándo ya se vieron los likes (para el número de la pestaña)
 let highlightSince = 0 // likes más nuevos que esto se marcan como «nuevo»
 const likesKey = () => 'palabras-pt:likes-vistos:' + (user ? user.uid : '')
@@ -55,6 +61,8 @@ function onUser (u) {
   mine = []
   knownIncoming = null
   prevLikes = null
+  prevComments = null
+  Array.from(openThreads).forEach(closeThread)
   $('tab-friends').hidden = !u
   if (!u) {
     if (!$('view-friends').hidden) window.PalavrasTabs.show('words')
@@ -78,8 +86,10 @@ function onUser (u) {
     mine = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     mine.forEach((p) => Object.keys(p.likes || {}).forEach(loadProfile))
     notifyNewLikes()
+    notifyNewComments()
+    closeMissingThreads()
     if (tab === 'friends') markLikesSeen()
-    renderMine()
+    renderPosts()
     renderBadge()
   }, (err) => showError(err))
 
@@ -148,7 +158,8 @@ function startFeed () {
   unsubFeed = fs.onSnapshot(fs.query(col, fs.where('audience', 'array-contains', user.uid), fs.limit(40)), (snap) => {
     feed = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
     feed.forEach((p) => loadProfile(p.owner))
-    renderFeed()
+    closeMissingThreads()
+    renderPosts()
   }, (err) => showError(err))
   // Al abrir la pestaña: se marcan los likes como vistos (pero se resaltan los nuevos).
   highlightSince = likesSeenAt
@@ -179,14 +190,32 @@ function notifyNewLikes () {
   }
   prevLikes = current
 }
+function notifyNewComments () {
+  const current = new Map(mine.map((p) => [p.id, p.lastCommentAt || 0]))
+  if (prevComments) {
+    mine.forEach((p) => {
+      if ((p.lastCommentAt || 0) > (prevComments.get(p.id) || 0) && p.lastCommentBy && p.lastCommentBy !== user.uid) {
+        loadProfile(p.lastCommentBy).then((pr) => app.toast('💬 ' + (pr ? pr.name : 'Un amigo') + ' comentó en ' + postTitle(p) + '.', 'ok'))
+      }
+    })
+  }
+  prevComments = current
+}
+// Cuenta likes nuevos y publicaciones propias con comentarios nuevos de otros.
 function unseenLikes () {
   let n = 0
-  mine.forEach((p) => Object.entries(p.likes || {}).forEach(([uid, v]) => { if (uid !== user.uid && likeTime(v) > likesSeenAt) n++ }))
+  mine.forEach((p) => {
+    Object.entries(p.likes || {}).forEach(([uid, v]) => { if (uid !== user.uid && likeTime(v) > likesSeenAt) n++ })
+    if ((p.lastCommentAt || 0) > likesSeenAt && p.lastCommentBy && p.lastCommentBy !== user.uid) n++
+  })
   return n
 }
 function markLikesSeen () {
   let latest = likesSeenAt
-  mine.forEach((p) => Object.values(p.likes || {}).forEach((v) => { latest = Math.max(latest, likeTime(v)) }))
+  mine.forEach((p) => {
+    Object.values(p.likes || {}).forEach((v) => { latest = Math.max(latest, likeTime(v)) })
+    latest = Math.max(latest, p.lastCommentAt || 0)
+  })
   if (latest === likesSeenAt) return
   likesSeenAt = latest
   try { localStorage.setItem(likesKey(), String(likesSeenAt)) } catch (e) {}
@@ -196,6 +225,134 @@ function renderBadge () {
   const badge = $('friends-badge')
   badge.hidden = !n
   badge.textContent = n
+}
+
+// ---------- Comentarios ----------
+function openThread (postId) {
+  if (openThreads.has(postId)) return
+  openThreads.add(postId)
+  const { fs, db } = cloud
+  const q = fs.query(fs.collection(db, 'posts', postId, 'comments'), fs.orderBy('createdAt'), fs.limit(100))
+  threadUnsub.set(postId, fs.onSnapshot(q, (snap) => {
+    const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+    list.forEach((c) => loadProfile(c.author))
+    threadData.set(postId, list)
+    renderPosts()
+  }, (err) => { showError(err); closeThread(postId); renderPosts() }))
+  renderPosts()
+}
+function closeThread (postId) {
+  openThreads.delete(postId)
+  const unsub = threadUnsub.get(postId)
+  if (unsub) unsub()
+  threadUnsub.delete(postId)
+  threadData.delete(postId)
+}
+function closeMissingThreads () {
+  const ids = new Set(feed.concat(mine).map((p) => p.id))
+  Array.from(openThreads).forEach((id) => { if (!ids.has(id)) closeThread(id) })
+}
+
+async function sendComment (post, text) {
+  text = String(text || '').trim().slice(0, 500)
+  if (!text) return false
+  const { fs, db } = cloud
+  const batch = fs.writeBatch(db)
+  const now = Date.now()
+  batch.set(fs.doc(fs.collection(db, 'posts', post.id, 'comments')), { author: user.uid, text, createdAt: now })
+  batch.update(fs.doc(db, 'posts', post.id), { commentCount: fs.increment(1), lastCommentAt: now, lastCommentBy: user.uid })
+  try {
+    await batch.commit()
+    return true
+  } catch (err) {
+    showError(err)
+    app.toast('No se pudo enviar el comentario (' + (err.code || 'error') + ').', 'info')
+    return false
+  }
+}
+
+function deleteComment (post, comment) {
+  if (!confirm('¿Borrar este comentario?')) return
+  const { fs, db } = cloud
+  const batch = fs.writeBatch(db)
+  batch.delete(fs.doc(db, 'posts', post.id, 'comments', comment.id))
+  batch.update(fs.doc(db, 'posts', post.id), { commentCount: fs.increment(-1) })
+  batch.commit().catch((err) => {
+    showError(err)
+    app.toast('No se pudo borrar el comentario (' + (err.code || 'error') + ').', 'info')
+  })
+}
+
+function commentToggle (p) {
+  const count = Math.max(0, p.commentCount || 0)
+  const open = openThreads.has(p.id)
+  const isNew = p.owner === user.uid && (p.lastCommentAt || 0) > highlightSince && p.lastCommentBy !== user.uid
+  return el('button', {
+    type: 'button',
+    class: 'link comment-toggle' + (isNew ? ' has-new' : ''),
+    'aria-expanded': String(open),
+    onclick: () => (open ? (closeThread(p.id), renderPosts()) : openThread(p.id))
+  }, ['💬 ' + (count ? count + (count === 1 ? ' comentario' : ' comentarios') : 'Comentar') + (isNew ? ' · nuevo' : '')])
+}
+
+function commentThread (p) {
+  if (!openThreads.has(p.id)) return null
+  const list = threadData.get(p.id)
+  const items = !list
+    ? [el('li', { class: 'muted small', text: 'Cargando comentarios…' })]
+    : !list.length
+        ? [el('li', { class: 'muted small', text: 'Todavía no hay comentarios. ¡Escribe el primero!' })]
+        : list.map((c) => el('li', { class: 'comment' }, [
+          avatarEl(c.author, 26),
+          el('div', { class: 'comment-main' }, [
+            el('div', { class: 'comment-head' }, [
+              el('strong', { text: c.author === user.uid ? 'Tú' : nameOf(c.author) }),
+              el('span', { class: 'muted small', text: timeAgo(c.createdAt) }),
+              c.author === user.uid || p.owner === user.uid
+                ? el('button', { type: 'button', class: 'link danger small-link', text: 'Borrar', onclick: () => deleteComment(p, c) })
+                : null
+            ]),
+            el('p', { class: 'comment-text', text: c.text })
+          ])
+        ]))
+  const input = el('input', {
+    type: 'text',
+    maxlength: '500',
+    placeholder: 'Escribe un comentario…',
+    'aria-label': 'Escribe un comentario',
+    'data-comment-for': p.id
+  })
+  input.value = drafts.get(p.id) || ''
+  input.addEventListener('input', () => drafts.set(p.id, input.value))
+  const form = el('form', {
+    class: 'comment-form',
+    onsubmit: async (e) => {
+      e.preventDefault()
+      const text = input.value
+      if (!text.trim()) return
+      // Se limpia antes de enviar: la pantalla puede redibujarse mientras se guarda.
+      drafts.delete(p.id)
+      input.value = ''
+      const ok = await sendComment(p, text)
+      const current = document.querySelector('[data-comment-for="' + CSS.escape(p.id) + '"]') || input
+      if (!ok) { drafts.set(p.id, text); current.value = text }
+      current.focus()
+    }
+  }, [input, el('button', { type: 'submit', class: 'btn small', text: 'Enviar' })])
+  return el('div', { class: 'comments' }, [el('ul', { class: 'comment-list' }, items), form])
+}
+
+// Vuelve a dibujar las publicaciones sin perder el foco ni lo que se está escribiendo.
+function renderPosts () {
+  const active = document.activeElement
+  const pid = active && active.dataset ? active.dataset.commentFor : null
+  const pos = pid ? active.selectionStart : null
+  renderFeed()
+  renderMine()
+  if (pid) {
+    const again = document.querySelector('[data-comment-for="' + CSS.escape(pid) + '"]')
+    if (again) { again.focus(); try { again.setSelectionRange(pos, pos) } catch (e) {} }
+  }
 }
 
 // ---------- Acciones ----------
@@ -278,10 +435,23 @@ function toggleLike (post) {
   fs.updateDoc(fs.doc(db, 'posts', post.id), new fs.FieldPath('likes', user.uid), liked ? fs.deleteField() : Date.now()).catch(showError)
 }
 
-function deletePost (post) {
-  if (!confirm('¿Dejar de compartir esto? Tus amigos ya no lo verán.')) return
+async function deletePost (post) {
+  if (!confirm('¿Dejar de compartir esto? Tus amigos ya no lo verán (ni sus comentarios).')) return
   const { fs, db } = cloud
-  fs.deleteDoc(fs.doc(db, 'posts', post.id)).catch(showError)
+  try {
+    closeThread(post.id)
+    // Firestore no borra solas las subcolecciones: primero los comentarios.
+    const comments = await fs.getDocs(fs.collection(db, 'posts', post.id, 'comments'))
+    for (let i = 0; i < comments.docs.length; i += 400) {
+      const batch = fs.writeBatch(db)
+      comments.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref))
+      await batch.commit()
+    }
+    await fs.deleteDoc(fs.doc(db, 'posts', post.id))
+  } catch (err) {
+    showError(err)
+    app.toast('No se pudo dejar de compartir (' + (err.code || 'error') + ').', 'info')
+  }
 }
 
 // API para el resto de la app (botón 📤 de cada palabra y de la frase del día).
@@ -364,8 +534,7 @@ function timeAgo (ms) {
 
 function renderAll () {
   renderFriends()
-  renderFeed()
-  renderMine()
+  renderPosts()
 }
 
 function renderFriends () {
@@ -472,8 +641,10 @@ function renderFeed () {
               app.toast(added ? 'Agregaste «' + p.word + '» a tu lista.' : '«' + p.word + '» ya está en tu lista.', added ? 'ok' : 'info')
             }
           })
-          : null
-      ])
+          : null,
+        commentToggle(p)
+      ]),
+      commentThread(p)
     ])
   }))
 }
@@ -506,9 +677,11 @@ function renderMine () {
       postBody(p),
       likers,
       el('div', { class: 'post-actions' }, [
+        commentToggle(p),
         el('span', { class: 'muted small', text: 'Compartido ' + timeAgo(p.createdAt) }),
         el('button', { type: 'button', class: 'link danger', text: 'Dejar de compartir', onclick: () => deletePost(p) })
-      ])
+      ]),
+      commentThread(p)
     ])
   }))
 }

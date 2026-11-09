@@ -60,13 +60,40 @@ service cloud.firestore {
         && request.resource.data.owner == request.auth.uid
         && request.resource.data.audience is list
         && request.resource.data.audience.size() <= 500
-        && request.resource.data.likes == {};
+        && request.resource.data.likes == {}
+        && !request.resource.data.keys().hasAny(['commentCount', 'lastCommentAt', 'lastCommentBy']);
       allow delete: if signedIn() && resource.data.owner == request.auth.uid;
       // Los amigos solo pueden poner o quitar SU propio like.
       allow update: if signedIn()
         && request.auth.uid in resource.data.audience
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
         && request.resource.data.likes.diff(resource.data.likes).affectedKeys().hasOnly([request.auth.uid]);
+      // Contador de comentarios: sube o baja de a uno; el último comentario lo firma quien escribe.
+      allow update: if signedIn()
+        && (resource.data.owner == request.auth.uid || request.auth.uid in resource.data.audience)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'lastCommentAt', 'lastCommentBy'])
+        && (request.resource.data.get('commentCount', 0) == resource.data.get('commentCount', 0) + 1
+            || request.resource.data.get('commentCount', 0) == resource.data.get('commentCount', 0) - 1)
+        && request.resource.data.get('commentCount', 0) >= 0
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastCommentAt', 'lastCommentBy'])
+            || request.resource.data.lastCommentBy == request.auth.uid);
+
+      // Comentarios: los ven y escriben el autor y los amigos de `audience`.
+      match /comments/{commentId} {
+        function parent() { return get(/databases/$(database)/documents/posts/$(postId)).data; }
+        function canSee() { return signedIn() && (parent().owner == request.auth.uid || request.auth.uid in parent().audience); }
+        allow read: if canSee();
+        allow create: if canSee()
+          && request.resource.data.keys().hasOnly(['author', 'text', 'createdAt'])
+          && request.resource.data.author == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 500
+          && request.resource.data.createdAt is number;
+        // Borra quien escribió el comentario o el autor de la publicación.
+        allow delete: if signedIn()
+          && (resource.data.author == request.auth.uid || parent().owner == request.auth.uid);
+      }
     }
   }
 }
