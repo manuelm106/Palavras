@@ -152,7 +152,46 @@
     return pending[k]
   }
 
-  var api = { get: get, fetch: fetchFor, _parse: parse }
+  // ---------- Más frases (al tocar «Otro ejemplo» cuando ya no quedan) ----------
+  var MAX_STORED = 15
+  var moreTries = {}
+
+  /**
+   * Pide frases al azar (con o sin traducción) y suma las nuevas a la caché.
+   * Devuelve cuántas frases nuevas se agregaron.
+   */
+  function fetchMore (word) {
+    var k = key(word)
+    if (!k || typeof fetch === 'undefined') return Promise.resolve(0)
+    moreTries[k] = (moreTries[k] || 0) + 1
+    var multi = k.indexOf(' ') !== -1
+    var q = encodeURIComponent(multi ? '"' + k + '"' : '=' + k)
+    var urls = [
+      'https://api.tatoeba.org/unstable/sentences?lang=por&q=' + q + '&showtrans=spa&sort=random&limit=30',
+      'https://tatoeba.org/es/api_v0/search?from=por&orphans=no&unapproved=no&sort=random&query=' + q
+    ]
+    var i = 0
+    function next () {
+      if (i >= urls.length) return Promise.resolve([])
+      return fetchJSON(urls[i++]).then(function (data) {
+        var found = parse(data, k)
+        return found.length ? found : next()
+      }, next)
+    }
+    return next().then(function (found) {
+      var current = (cache[k] && cache[k].s) || []
+      var known = {}
+      current.forEach(function (x) { known[fold(x.pt)] = true })
+      var fresh = found.filter(function (x) { return !known[fold(x.pt)] })
+      if (fresh.length) {
+        cache[k] = { t: Date.now(), s: current.concat(fresh).slice(0, MAX_STORED) }
+        save()
+      }
+      return fresh.length
+    })
+  }
+
+  var api = { get: get, fetch: fetchFor, more: fetchMore, _parse: parse }
   if (typeof module !== 'undefined' && module.exports) module.exports = api
   else root.Sentences = api
 })(this)

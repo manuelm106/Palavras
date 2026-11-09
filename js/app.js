@@ -229,7 +229,7 @@
   function exampleContent (w, item, loading) {
     if (!item) {
       return [el('p', { class: 'example-empty' }, [
-        loading ? 'Buscando frases reales con «' + w.word + '»…' : 'Todavía no hay un ejemplo para «' + w.word + '». Escribe el tuyo en «Mis ejemplos».'
+        loading ? 'Buscando frases reales con «' + w.word + '»…' : 'Todavía no hay un ejemplo para «' + w.word + '».'
       ])]
     }
     var tag = item.source === 'tatoeba'
@@ -250,13 +250,43 @@
     var current = Examples.randomItem(w)
     var loading = false
     var exampleBox = el('div', { class: 'example-box' })
-    var otherBtn = el('button', { type: 'button', class: 'link', onclick: function () { show(Examples.randomItem(w, null, current && current.pt) || current) } }, ['Otro ejemplo'])
+    var note = el('span', { class: 'example-note muted small', 'aria-live': 'polite' })
+    var otherBtn = el('button', { type: 'button', class: 'link', onclick: nextExample }, ['Otro ejemplo'])
     var speakBtn = el('button', { type: 'button', class: 'link', onclick: function () { if (current) speak(current.pt) } }, ['Escuchar frase'])
+    var writeBtn = el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['✎ Escribir mi ejemplo'])
     function show (item) {
       current = item
       exampleBox.replaceChildren.apply(exampleBox, exampleContent(w, item, loading).filter(Boolean))
-      otherBtn.hidden = Examples.forWord(w).length < 2
+      otherBtn.hidden = !item
       speakBtn.hidden = !item
+      writeBtn.hidden = !!item || loading
+    }
+    // Pasa al siguiente ejemplo; si no quedan, busca más frases reales.
+    function nextExample () {
+      note.textContent = ''
+      var next = Examples.randomItem(w, null, current && current.pt)
+      if (next) { show(next); return }
+      if (!window.Sentences) { noMore(); return }
+      otherBtn.disabled = true
+      note.textContent = 'Buscando más frases…'
+      window.Sentences.more(w.word).then(function (added) {
+        otherBtn.disabled = false
+        note.textContent = ''
+        if (!exampleBox.isConnected) return
+        var fresh = added ? Examples.randomItem(w, null, current && current.pt) : null
+        if (fresh) show(fresh)
+        else noMore()
+      }, function () { otherBtn.disabled = false; noMore() })
+    }
+    function noMore () {
+      note.replaceChildren('No hay más ejemplos para «' + w.word + '». ', el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['Escribe el tuyo']))
+    }
+    function openOwnExample () {
+      var card = document.getElementById('w-' + w.id)
+      if (!card) return
+      var d = card.querySelector('details')
+      d.open = true
+      d.querySelector('input').focus()
     }
     // Si nunca se buscaron frases reales para esta palabra, se buscan ahora.
     if (window.Sentences && window.Sentences.get(w.word) === null) {
@@ -353,7 +383,9 @@
       el('div', { class: 'example-row' }, [
         exampleBox,
         otherBtn,
-        speakBtn
+        speakBtn,
+        writeBtn,
+        note
       ]),
       details
     ])
