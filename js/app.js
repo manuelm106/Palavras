@@ -194,14 +194,18 @@
     })
   }
 
-  function renderList () {
-    var list = $('#word-list')
-    list.innerHTML = ''
-    var items = state.words.filter(function (w) {
+  function visibleWords () {
+    return state.words.filter(function (w) {
       if (filter !== 'todas' && w.category !== filter) return false
       if (search && Classifier.normalize(w.word + ' ' + (w.meaning || '')).indexOf(search) === -1) return false
       return true
     })
+  }
+
+  function renderList () {
+    var list = $('#word-list')
+    list.innerHTML = ''
+    var items = visibleWords()
     $('#empty').hidden = state.words.length !== 0
     $('#no-results').hidden = !(state.words.length && !items.length)
     items.forEach(function (w) { list.appendChild(renderItem(w)) })
@@ -464,6 +468,58 @@
     while (box.children.length > 3) box.removeChild(box.firstChild)
     setTimeout(dismiss, note ? 20000 : 3500)
   }
+
+  // ---------- Exportar a PDF (vista de impresión) ----------
+  // Elige siempre el mismo elemento para una palabra (así no se repite la misma frase en todas).
+  function stablePick (arr, key) {
+    if (!arr.length) return ''
+    var h = 0
+    for (var i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
+    return arr[h % arr.length]
+  }
+
+  function buildPrintView (words) {
+    var view = $('#print-view')
+    view.innerHTML = ''
+    var filtered = filter !== 'todas' || search
+    var date = new Date().toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
+    view.appendChild(el('h1', { text: 'Palavras · mi vocabulario de portugués' }))
+    view.appendChild(el('p', {
+      class: 'print-meta',
+      text: date + ' · ' + words.length + (words.length === 1 ? ' palabra' : ' palabras') + (filtered ? ' (lista filtrada)' : '')
+    }))
+    Object.keys(CATS).forEach(function (cat) {
+      var group = words.filter(function (w) { return w.category === cat })
+        .sort(function (a, b) { return a.word.localeCompare(b.word, 'pt') })
+      if (!group.length) return
+      var rows = group.map(function (w) {
+        // Primero el ejemplo propio; si no hay, el primer ejemplo sugerido (estable, no aleatorio).
+        var example = (w.examples || []).filter(Boolean)[0] || stablePick(Examples.allExamples(w.word, w.category), w.word) || ''
+        return el('tr', {}, [
+          el('td', { class: 'p-word', lang: 'pt-BR', text: w.word }),
+          el('td', { text: w.meaning || '' }),
+          el('td', { class: 'p-example', lang: 'pt-BR', text: example })
+        ])
+      })
+      view.appendChild(el('section', { class: 'print-group' }, [
+        el('h2', { text: CATS[cat].label + ' (' + group.length + ')' }),
+        el('table', {}, [
+          el('thead', {}, [el('tr', {}, [el('th', { text: 'Palabra' }), el('th', { text: 'Significado' }), el('th', { text: 'Ejemplo' })])]),
+          el('tbody', {}, rows)
+        ])
+      ]))
+    })
+  }
+
+  $('#export-pdf').addEventListener('click', function () {
+    var words = visibleWords()
+    if (!words.length) { toast('No hay palabras para exportar.', 'info'); return }
+    buildPrintView(words)
+    var oldTitle = document.title
+    document.title = 'palavras-' + new Date().toISOString().slice(0, 10) // nombre sugerido del PDF
+    window.print()
+    setTimeout(function () { document.title = oldTitle }, 1000)
+  })
 
   // ---------- Exportar / importar ----------
   $('#export').addEventListener('click', function () {
