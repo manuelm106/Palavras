@@ -281,7 +281,8 @@ async function init () {
     try { cached = localStorage.getItem(PUBLIC_CACHE) } catch (e) {}
     if (cached === key) return // nada cambió: no gastar escrituras
     try {
-      await fs.setDoc(fs.doc(db, 'profiles', user.uid), payload)
+      // merge: no borrar «sobre mí» ni los puntajes del desafío, que se guardan en el mismo perfil.
+      await fs.setDoc(fs.doc(db, 'profiles', user.uid), payload, { merge: true })
       if (email) await fs.setDoc(fs.doc(db, 'emails', email), { uid: user.uid })
       try { localStorage.setItem(PUBLIC_CACHE, key) } catch (e) {}
     } catch (err) {

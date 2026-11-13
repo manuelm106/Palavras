@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0b7a53">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=30">
+  <link rel="stylesheet" href="styles.css?v=33">
 </head>
 <body>
   <header class="site-header">
@@ -184,6 +184,17 @@
       <ol id="sc-hard" class="hard-list"></ol>
       <p id="sc-hard-empty" class="muted small">Todavía no hay fallos. ¡Bien!</p>
       <button id="sc-reset" type="button" class="link danger">Reiniciar puntajes</button>
+
+      <section class="leaderboard" aria-labelledby="lb-title">
+        <h2 id="lb-title">🏆 Ranking</h2>
+        <div class="lb-modes" role="group" aria-label="Período del ranking">
+          <button type="button" class="chip" data-mode="week" aria-pressed="true">Esta semana</button>
+          <button type="button" class="chip" data-mode="total" aria-pressed="false">Total</button>
+        </div>
+        <p id="lb-note" class="muted small"></p>
+        <ol id="lb-list" class="lb-list"></ol>
+        <p class="muted small">Puntos = aciertos en el desafío (categoría y frase). La semana empieza el lunes.</p>
+      </section>
       <p class="muted small">La categoría se compara con la que tiene guardada la palabra en tu lista. La frase se comprueba revisando que use la palabra (o una forma conjugada); la gramática no se corrige: compara con el ejemplo que aparece.</p>
     </aside>
   </main>
@@ -206,6 +217,31 @@
       </section>
 
       <aside class="panel" aria-labelledby="add-friend-title">
+        <details id="my-profile" class="my-profile">
+          <summary><strong>✏️ Mi perfil</strong> <span class="muted small">sobre mí, nivel y privacidad</span></summary>
+          <form id="profile-form" class="profile-form" autocomplete="off">
+            <label for="pf-bio">Sobre mí</label>
+            <textarea id="pf-bio" rows="3" maxlength="300" placeholder="Cuéntales a tus amigos quién eres y por qué aprendes portugués."></textarea>
+            <p id="pf-bio-count" class="muted small fb-count">0 / 300</p>
+            <label for="pf-level">Nivel de portugués</label>
+            <select id="pf-level">
+              <option value="">Sin indicar</option>
+              <option value="principiante">🌱 Principiante</option>
+              <option value="intermedio">🌿 Intermedio</option>
+              <option value="avanzado">🌳 Avanzado</option>
+              <option value="nativo">🇧🇷 Nativo</option>
+            </select>
+            <label for="pf-location">Ciudad o país <span class="optional">(opcional)</span></label>
+            <input id="pf-location" type="text" maxlength="60" placeholder="ej.: Buenos Aires, Argentina">
+            <label class="check"><input id="pf-share" type="checkbox" checked> Mis amigos pueden ver mis palabras</label>
+            <div class="profile-actions">
+              <button type="submit" class="btn small primary-inline">Guardar perfil</button>
+              <button id="pf-preview" type="button" class="link">Ver mi perfil como lo ven mis amigos</button>
+            </div>
+            <p id="pf-status" class="small" aria-live="polite"></p>
+          </form>
+        </details>
+
         <h2 id="add-friend-title">Agregar amigo</h2>
         <form id="friend-form" class="friend-form" autocomplete="off">
           <input id="friend-email" type="email" inputmode="email" placeholder="correo@gmail.com" aria-label="Correo de tu amigo" required>
@@ -230,6 +266,14 @@
       </aside>
     </div>
   </main>
+
+  <dialog id="profile-dialog" class="help-dialog profile-dialog" aria-labelledby="pv-name">
+    <div class="help-head">
+      <h2>Perfil</h2>
+      <button id="pv-close" type="button" class="icon-btn" aria-label="Cerrar">✕</button>
+    </div>
+    <div id="pv-body" class="pv-body"></div>
+  </dialog>
 
   <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
     <div class="help-head">
@@ -294,17 +338,18 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="print-view" class="print-view" aria-hidden="true"></div>
 
-  <script src="js/classifier.js?v=30"></script>
-  <script src="js/sentences.js?v=30"></script>
-  <script src="js/examples.js?v=30"></script>
-  <script src="js/gender-es.js?v=30"></script>
-  <script src="js/phrases.js?v=30"></script>
-  <script src="js/app.js?v=30"></script>
-  <script src="js/translate.js?v=30"></script>
-  <script src="js/challenge.js?v=30"></script>
-  <script src="js/firebase-config.js?v=30"></script>
-  <script type="module" src="js/sync.js?v=30"></script>
-  <script type="module" src="js/social.js?v=30"></script>
-  <script type="module" src="js/help.js?v=30"></script>
+  <script src="js/classifier.js?v=33"></script>
+  <script src="js/sentences.js?v=33"></script>
+  <script src="js/examples.js?v=33"></script>
+  <script src="js/gender-es.js?v=33"></script>
+  <script src="js/phrases.js?v=33"></script>
+  <script src="js/app.js?v=33"></script>
+  <script src="js/translate.js?v=33"></script>
+  <script src="js/challenge.js?v=33"></script>
+  <script src="js/firebase-config.js?v=33"></script>
+  <script type="module" src="js/sync.js?v=33"></script>
+  <script type="module" src="js/social.js?v=33"></script>
+  <script type="module" src="js/help.js?v=33"></script>
+  <script type="module" src="js/leaderboard.js?v=33"></script>
 </body>
 </html>

@@ -184,6 +184,84 @@
     })
   }
 
+  // ---------- Puntajes en el perfil (para el ranking con amigos) ----------
+  // profiles/{uid}.challenge = { ok, fail, best, weeks: { '2026-W46': { ok, fail } }, updatedAt }
+  function weekId (d) {
+    d = d || new Date()
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+    var day = t.getUTCDay() || 7
+    t.setUTCDate(t.getUTCDate() + 4 - day)
+    var y = t.getUTCFullYear()
+    var w = Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7)
+    return y + '-W' + (w < 10 ? '0' : '') + w
+  }
+
+  function totals () {
+    var t = { ok: 0, fail: 0 }
+    app.getWords().forEach(function (w) {
+      var st = stats(w)
+      t.ok += st.catOk + st.exOk
+      t.fail += st.catFail + st.exFail
+    })
+    return t
+  }
+
+  var initPromise = null
+  var initSettled = false
+  var knownBest = 0
+
+  function profileRef () {
+    var cloud = window.PalavrasCloud
+    if (!cloud || !cloud.user) return null
+    return { fs: cloud.fs, ref: cloud.fs.doc(cloud.db, 'profiles', cloud.user.uid) }
+  }
+
+  // La primera vez, el total arranca con los puntajes que ya había.
+  function ensureInit () {
+    if (initPromise) return initPromise
+    var p = profileRef()
+    if (!p) return Promise.resolve('none')
+    initPromise = p.fs.getDoc(p.ref).then(function (snap) {
+      var c = snap.exists() ? snap.data().challenge : null
+      if (c && typeof c.ok === 'number') { knownBest = c.best || 0; return 'existing' }
+      var t = totals()
+      knownBest = local.best || 0
+      return p.fs.setDoc(p.ref, { challenge: { ok: t.ok, fail: t.fail, best: knownBest, updatedAt: Date.now() } }, { merge: true })
+        .then(function () { return 'created' })
+    }).then(function (status) { initSettled = true; return status }, function (err) {
+      console.warn('Ranking: no se pudo leer el perfil', err && err.code)
+      initPromise = null
+      return 'error'
+    })
+    return initPromise
+  }
+
+  function publishRound (okN, failN) {
+    var before = initSettled
+    ensureInit().then(function (status) {
+      if (status === 'none' || status === 'error') return
+      var p = profileRef()
+      if (!p) return
+      var inc = p.fs.increment
+      var week = {}
+      week[weekId()] = { ok: inc(okN), fail: inc(failN) }
+      var data = { weeks: week, updatedAt: Date.now() }
+      // Si el total se acaba de crear, ya incluye esta ronda.
+      if (status === 'existing' || before) { data.ok = inc(okN); data.fail = inc(failN) }
+      if ((local.best || 0) > knownBest) { data.best = local.best; knownBest = local.best }
+      p.fs.setDoc(p.ref, { challenge: data }, { merge: true }).then(function () {
+        window.dispatchEvent(new CustomEvent('palavras-challenge-updated'))
+      }, function (err) { console.warn('Ranking: no se pudo guardar', err && err.code) })
+    })
+  }
+
+  window.addEventListener('palavras-user', function (e) {
+    initPromise = null
+    initSettled = false
+    knownBest = 0
+    if (e.detail) ensureInit()
+  })
+
   function record (field) {
     var w = findWord(current.id)
     if (!w) return
@@ -265,6 +343,7 @@
       local.streak = 0
     }
     saveLocal()
+    publishRound((current.catOk ? 1 : 0) + (current.exOk ? 1 : 0), (current.catOk ? 0 : 1) + (current.exOk ? 0 : 1))
 
     var others = Examples.forWord(w).filter(function (x) { return fold(x.pt) !== fold(sentence) && x.source !== 'template' })
     var modelItem = others.filter(function (x) { return x.source !== 'own' })[0] || others[0] || null
@@ -299,6 +378,7 @@
       local.streak = 0
       saveLocal()
       renderScores()
+      publishRound(current.catOk ? 1 : 0, current.catOk ? 1 : 2)
     }
     nextRound()
   })
@@ -356,6 +436,12 @@
     local.best = 0
     saveLocal()
     renderScores()
+    var p = profileRef()
+    if (p) {
+      knownBest = 0
+      p.fs.updateDoc(p.ref, { challenge: { ok: 0, fail: 0, best: 0, weeks: {}, updatedAt: Date.now() } })
+        .then(function () { window.dispatchEvent(new CustomEvent('palavras-challenge-updated')) }, function () {})
+    }
   })
 
   // Si la lista cambia (por ejemplo, desde otro dispositivo), refrescar puntajes.
@@ -369,7 +455,7 @@
   }
 
   // Exponer la comprobación para pruebas.
-  window.PalavrasChallenge = { checkSentence: checkSentence }
+  window.PalavrasChallenge = { checkSentence: checkSentence, weekId: weekId }
 
   var saved = null
   try { saved = localStorage.getItem(TAB_KEY) } catch (e) {}

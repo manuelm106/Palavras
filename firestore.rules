@@ -6,9 +6,19 @@ service cloud.firestore {
     // Administradores: cuentas con un documento en admins/{uid} (se crea a mano en la consola).
     function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
 
-    // Lista privada de cada usuario (palabras, puntajes y foto).
+    // ¿Hay una amistad aceptada entre el usuario y `other`? (id: "uidMenor_uidMayor")
+    function isFriendOf(other) {
+      let me = request.auth.uid;
+      let path = /databases/$(database)/documents/friendships/$(other < me ? other + '_' + me : me + '_' + other);
+      return exists(path) && get(path).data.status == 'accepted';
+    }
+
+    // Lista de cada usuario (palabras, puntajes y foto). La leen el dueño y, si no
+    // desactivó «Mis amigos pueden ver mis palabras» (shareWords), sus amigos.
     match /users/{uid} {
-      allow read, write: if isMe(uid);
+      allow read: if isMe(uid)
+        || (signedIn() && isFriendOf(uid) && resource.data.get('shareWords', true) == true);
+      allow write: if isMe(uid);
     }
     // Formato anterior: solo para la migración automática.
     match /users/{uid}/words/{wordId} {
@@ -18,7 +28,10 @@ service cloud.firestore {
     // Nombre y foto que ven los demás. Se leen de a uno (no se pueden listar).
     match /profiles/{uid} {
       allow get: if signedIn();
-      allow write: if isMe(uid);
+      allow write: if isMe(uid)
+        && request.resource.data.get('bio', '') is string && request.resource.data.get('bio', '').size() <= 300
+        && request.resource.data.get('location', '') is string && request.resource.data.get('location', '').size() <= 60
+        && request.resource.data.get('level', '') in ['', 'principiante', 'intermedio', 'avanzado', 'nativo'];
     }
 
     // Correo → uid, para agregar amigos con el correo exacto (no se pueden listar).
