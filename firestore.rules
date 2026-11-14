@@ -28,6 +28,7 @@ service cloud.firestore {
     // Nombre y foto que ven los demás. Se leen de a uno (no se pueden listar).
     match /profiles/{uid} {
       allow get: if signedIn();
+      allow list: if isAdmin(); // sección «Usuarios» del administrador
       allow write: if isMe(uid)
         && request.resource.data.get('bio', '') is string && request.resource.data.get('bio', '').size() <= 300
         && request.resource.data.get('location', '') is string && request.resource.data.get('location', '').size() <= 60
@@ -37,6 +38,7 @@ service cloud.firestore {
     // Correo → uid, para agregar amigos con el correo exacto (no se pueden listar).
     match /emails/{email} {
       allow get: if signedIn();
+      allow list: if isAdmin(); // para mostrar el correo en la sección «Usuarios»
       allow create, update: if signedIn()
         && request.resource.data.keys().hasOnly(['uid'])
         && request.resource.data.uid == request.auth.uid

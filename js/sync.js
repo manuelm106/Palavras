@@ -208,7 +208,7 @@ async function init () {
     } else {
       setStatus('Sincronizado ✔')
     }
-    publishProfile()
+    publishProfile().then(publishActivity)
     if (migrated) console.info(`Migradas ${migrated} palabras al formato nuevo.`)
   }
 
@@ -274,9 +274,10 @@ async function init () {
     let avatar
     if (profile && (profile.type === 'photo' || profile.type === 'emoji') && profile.value) avatar = { type: profile.type, value: profile.value }
     else avatar = user.photoURL ? { type: 'url', value: user.photoURL } : null
-    const payload = { name: user.displayName || (user.email || '').split('@')[0] || 'Usuario', avatar, updatedAt: Date.now() }
+    const joined = Date.parse((user.metadata && user.metadata.creationTime) || '') || null
+    const payload = { name: user.displayName || (user.email || '').split('@')[0] || 'Usuario', avatar, joinedAt: joined, updatedAt: Date.now() }
     const email = (user.email || '').trim().toLowerCase()
-    const key = JSON.stringify({ uid: user.uid, name: payload.name, avatar, email })
+    const key = JSON.stringify({ uid: user.uid, name: payload.name, avatar, email, joined })
     let cached = null
     try { cached = localStorage.getItem(PUBLIC_CACHE) } catch (e) {}
     if (cached === key) return // nada cambió: no gastar escrituras
@@ -290,6 +291,22 @@ async function init () {
     }
   }
   window.addEventListener('palavras-profile', () => { publishProfile() })
+
+  // Última visita y cantidad de palabras: una escritura por día y dispositivo
+  // (para la sección «Usuarios» del administrador).
+  async function publishActivity () {
+    const user = currentUser
+    if (!user || !ready || user.uid !== uid) return
+    const key = 'palabras-pt:actividad'
+    const today = user.uid + ':' + new Date().toISOString().slice(0, 10)
+    try { if (localStorage.getItem(key) === today) return } catch (e) {}
+    try {
+      await fs.setDoc(fs.doc(db, 'profiles', user.uid), { lastSeen: Date.now(), wordCount: app.getWords().length }, { merge: true })
+      try { localStorage.setItem(key, today) } catch (e) {}
+    } catch (err) {
+      console.warn('No se pudo registrar la actividad:', err.code || err)
+    }
+  }
 
   // ---------- Sesión y escucha de cambios ----------
   auth.onAuthStateChanged(a, (user) => {

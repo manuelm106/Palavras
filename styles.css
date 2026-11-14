@@ -553,3 +553,15 @@ a.example-source:hover { color: var(--primary); text-decoration: underline; }
 .verb-note { margin-top: 6px; font-weight: 600; font-size: .9rem; }
 .cat-irregular { --c: var(--danger); }
 @media print { .p-irreg { font-size: 8pt; color: #b91c1c; margin-top: 1pt; font-weight: 600; } }
+/* Usuarios (administrador) */
+.admin-users summary { cursor: pointer; list-style: none; }
+.admin-users summary::-webkit-details-marker { display: none; }
+.admin-users summary h3::before { content: '▸ '; color: var(--muted); }
+.admin-users details[open] summary h3::before { content: '▾ '; }
+.users-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+@media (max-width: 520px) { .users-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.users-stats .score span { font-size: 1.3rem; }
+.users-list { list-style: none; margin: 8px 0; padding: 0; display: grid; gap: 6px; }
+.user-row { display: flex; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
+.user-main { min-width: 0; overflow-wrap: anywhere; }
+.user-main .muted { margin: 0; }

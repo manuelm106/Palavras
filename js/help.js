@@ -109,6 +109,8 @@ async function checkAdmin (user) {
   if (unsubInbox) { unsubInbox(); unsubInbox = null }
   isAdmin = false
   inbox = []
+  users = null
+  if ($('users-details')) $('users-details').open = false
   renderInbox()
   if (!user) return
   const { fs, db } = cloud
@@ -157,7 +159,96 @@ function el (tag, attrs, children) {
   return node
 }
 
+// ---------- Usuarios (solo administradores) ----------
+let users = null // [{ uid, ...perfil, email }]
+let usersLoading = false
+let usersQuery = ''
+
+$('users-details').addEventListener('toggle', () => { if ($('users-details').open && !users) loadUsers() })
+$('users-refresh').addEventListener('click', loadUsers)
+$('users-search').addEventListener('input', () => { usersQuery = $('users-search').value.trim().toLowerCase(); renderUsers() })
+
+async function loadUsers () {
+  if (!isAdmin || usersLoading) return
+  usersLoading = true
+  $('users-note').textContent = 'Cargando usuarios…'
+  const { fs, db } = cloud
+  try {
+    const [profs, emails] = await Promise.all([
+      fs.getDocs(fs.collection(db, 'profiles')),
+      fs.getDocs(fs.collection(db, 'emails'))
+    ])
+    const emailOf = {}
+    emails.docs.forEach((d) => { emailOf[d.data().uid] = d.id })
+    users = profs.docs.map((d) => ({ uid: d.id, ...d.data(), email: emailOf[d.id] || '' }))
+    users.sort((a, b) => (b.lastSeen || b.updatedAt || 0) - (a.lastSeen || a.updatedAt || 0))
+    $('users-note').textContent = ''
+  } catch (err) {
+    console.error(err)
+    $('users-note').textContent = err.code === 'permission-denied'
+      ? 'Sin permiso: falta publicar las reglas nuevas de Firestore.'
+      : 'No se pudieron cargar los usuarios (' + (err.code || 'error') + ').'
+  }
+  usersLoading = false
+  renderUsers()
+}
+
+function ago (ms) {
+  if (!ms) return '—'
+  const days = Math.floor((Date.now() - ms) / 864e5)
+  if (days <= 0) return 'hoy'
+  if (days === 1) return 'ayer'
+  if (days < 30) return 'hace ' + days + ' días'
+  return new Date(ms).toLocaleDateString('es')
+}
+
+function miniAvatar (u) {
+  const a = u.avatar
+  const wrap = el('span', { class: 'mini-avatar', style: 'width:32px;height:32px;font-size:17px' })
+  if (a && (a.type === 'photo' || a.type === 'url') && a.value) wrap.appendChild(el('img', { src: a.value, alt: '', referrerpolicy: 'no-referrer' }))
+  else if (a && a.type === 'emoji') wrap.textContent = a.value
+  else { wrap.classList.add('initial'); wrap.textContent = ((u.name || '?').charAt(0) || '?').toUpperCase() }
+  return wrap
+}
+
+function renderUsers () {
+  $('admin-users').hidden = !isAdmin
+  if (!isAdmin || !users) { $('users-total').textContent = ''; return }
+  const week = 7 * 864e5
+  const active = users.filter((u) => u.lastSeen && Date.now() - u.lastSeen < week).length
+  const fresh = users.filter((u) => u.joinedAt && Date.now() - u.joinedAt < week).length
+  const words = users.reduce((n, u) => n + (u.wordCount || 0), 0)
+  $('users-total').textContent = '(' + users.length + ')'
+  const stat = (n, label) => el('div', { class: 'score' }, [el('span', { text: String(n) }), el('small', { text: label })])
+  $('users-stats').replaceChildren(
+    stat(users.length, 'usuarios'),
+    stat(active, 'activos en 7 días'),
+    stat(fresh, 'nuevos en 7 días'),
+    stat(words, 'palabras en total')
+  )
+  const list = users.filter((u) => !usersQuery || (u.name || '').toLowerCase().includes(usersQuery) || (u.email || '').toLowerCase().includes(usersQuery))
+  $('users-list').replaceChildren(...list.map((u) => {
+    const c = u.challenge || {}
+    return el('li', { class: 'user-row' }, [
+      miniAvatar(u),
+      el('div', { class: 'user-main' }, [
+        el('div', {}, [
+          el('strong', { text: u.name || 'Sin nombre' }),
+          u.email ? el('span', { class: 'muted small' }, [' · ', el('a', { href: 'mailto:' + encodeURIComponent(u.email), text: u.email })]) : null
+        ]),
+        el('div', { class: 'muted small', text:
+          'Registro: ' + (u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('es') : '—') +
+          ' · Última visita: ' + ago(u.lastSeen) +
+          ' · ' + (typeof u.wordCount === 'number' ? u.wordCount + ' palabras' : 'palabras: —') +
+          ' · ' + (c.ok || 0) + ' pts' })
+      ])
+    ])
+  }))
+  $('users-note').textContent = users.length && !list.length ? 'Nadie coincide con la búsqueda.' : (users.some((u) => !u.lastSeen) ? 'Algunos datos («—») aparecen cuando el usuario vuelve a abrir la app.' : '')
+}
+
 function renderInbox () {
+  renderUsers()
   $('inbox').hidden = !isAdmin
   const fresh = inbox.filter((m) => m.status === 'new').length
   for (const badge of [$('help-badge'), $('inbox-count')]) {

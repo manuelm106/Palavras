@@ -62,15 +62,17 @@ Estos datos de configuración no son secretos; lo que protege los datos son las 
 - `posts/{id}/comments/{id}`: comentarios (hasta 500 caracteres); los leen y escriben el autor y la audiencia; nadie puede escribir a nombre de otro.
 
 - `feedback/{id}`: mensajes de ayuda; cualquiera puede enviar uno (con límites de tamaño y campos), solo los administradores los leen, cambian su estado o borran.
-- `admins/{uid}`: cuentas administradoras; solo se crean desde la consola de Firebase.
+- `admins/{uid}`: cuentas administradoras; solo se crean desde la consola de Firebase. Un administrador puede además listar `profiles` y `emails` (sección «Usuarios»), pero no leer las listas de palabras ajenas.
 
-Las reglas están probadas con el emulador de Firestore (100 casos de acceso permitido y denegado), y los recorridos completos de la app (amigos, likes, comentarios, ayuda, perfil y ranking) se probaron contra el emulador con estas reglas activas.
+Las reglas están probadas con el emulador de Firestore (106 casos de acceso permitido y denegado), y los recorridos completos de la app (amigos, likes, comentarios, ayuda, perfil y ranking) se probaron contra el emulador con estas reglas activas.
 
 ### Ver los mensajes de ayuda (cuenta administradora)
 
 1. En la consola de Firebase, **Authentication → Users**: copiar el **User UID** de tu cuenta.
 2. **Firestore Database → Data → Start collection**: ID de la colección `admins`; ID del documento: tu UID; agregar un campo cualquiera (por ejemplo `name` = tu nombre) y guardar.
 3. Recargar la app con tu sesión iniciada: el botón ❓ Ayuda muestra la bandeja de mensajes y un número con los nuevos.
+
+La cuenta administradora también ve la sección **👥 Usuarios** en el panel de ayuda: total de usuarios, activos y nuevos en los últimos 7 días, total de palabras, y la lista con nombre, correo, fecha de registro, última visita, cantidad de palabras y puntos. La fecha de registro sale de la cuenta de Google; la última visita y la cantidad de palabras las registra la app de cada usuario una vez por día (campos `joinedAt`, `lastSeen` y `wordCount` del perfil). Los correos no se guardan en el perfil: se toman de `emails`, que solo un administrador puede listar. Solo aparecen quienes iniciaron sesión con Google.
 
 **Cómo se guarda:** toda la lista de cada usuario está en un solo documento, `users/{uid}`, con el campo `words` (un mapa `id → palabra`) y el campo `profile` (la foto de perfil). Así, abrir la app cuesta 1 lectura y cada cambio 1 escritura; los cambios seguidos (por ejemplo, las dos respuestas de una ronda del desafío) se agrupan en una sola escritura. El contador de notificaciones no se sincroniza (es de cada dispositivo). Un documento admite hasta 1 MiB: alcanza para unas 3.000 palabras con ejemplos; si se supera, la app lo avisa. Las listas guardadas con la versión anterior (`users/{uid}/words/{id}`) se migran solas al iniciar sesión.
 
