@@ -135,6 +135,7 @@ async function init () {
       }
       setStatus('Sincronizado ✔')
       scheduleCount()
+      window.dispatchEvent(new CustomEvent('palavras-words-saved'))
     } catch (err) {
       console.error(err)
       synced = previous // se reintenta en el próximo cambio

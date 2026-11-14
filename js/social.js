@@ -724,6 +724,10 @@ async function loadMyProfileForm () {
     $('pf-level').value = LEVELS[d.level] ? d.level : ''
     $('pf-location').value = d.location || ''
     $('pf-share').checked = !(us.exists() && us.data().shareWords === false)
+    publicCfg = Object.assign({ enabled: false, slug: null, showWords: true }, (us.exists() && us.data().publicProfile) || {})
+    $('pf-public').checked = !!publicCfg.enabled
+    $('pf-public-words').checked = publicCfg.showWords !== false
+    renderPublicLink()
   } catch (err) { showError(err) }
 }
 window.addEventListener('palavras-user', (e) => { if (e.detail) setTimeout(loadMyProfileForm, 0) })
@@ -744,6 +748,7 @@ $('profile-form').addEventListener('submit', async (e) => {
     }, { merge: true })
     await fs.updateDoc(fs.doc(db, 'users', user.uid), { shareWords: $('pf-share').checked })
     profiles.delete(user.uid)
+    await savePublicSettings()
     status.textContent = 'Perfil salvo ✔'
     status.className = 'small fb-status ok'
   } catch (err) {
@@ -877,3 +882,128 @@ function renderProfile (uid, prof, words, hidden) {
   if (isMe) section.push(el('p', { class: 'muted small', text: 'É assim que seus amigos veem seu perfil. Suas palavras ' + ($('pf-share').checked ? 'estão visíveis para eles.' : 'não estão visíveis (mude isso em «✏️ Meu perfil»).') }))
   body.replaceChildren(...section)
 }
+
+
+// ---------- Perfil público (link para compartir) ----------
+// public/{slug}: copia de lo que el usuario elige mostrar; la puede leer cualquiera con el link.
+// El slug es al azar (no revela el correo ni el uid) y se puede cambiar para invalidar el link.
+const MAX_PUBLIC_WORDS = 1000
+let publicCfg = { enabled: false, slug: null, showWords: true }
+let publicTimer = null
+
+function newSlug () {
+  const chars = 'abcdefghijkmnpqrstuvwxyz23456789'
+  const bytes = new Uint8Array(12)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, (b) => chars[b % chars.length]).join('')
+}
+
+function publicUrl () {
+  return publicCfg.slug ? new URL('perfil.html?u=' + publicCfg.slug, location.href).href : ''
+}
+
+function renderPublicLink () {
+  const on = $('pf-public').checked
+  $('pf-public-words-row').hidden = !on
+  const show = on && publicCfg.enabled && !!publicCfg.slug
+  $('pf-public-link').hidden = !show
+  if (show) {
+    $('pf-public-url').value = publicUrl()
+    $('pf-open').href = publicUrl()
+  }
+}
+$('pf-public').addEventListener('change', renderPublicLink)
+
+async function savePublicSettings () {
+  const { fs, db } = cloud
+  const wantOn = $('pf-public').checked
+  const showWords = $('pf-public-words').checked
+  if (wantOn) {
+    if (!publicCfg.slug) publicCfg.slug = newSlug()
+    publicCfg.enabled = true
+    publicCfg.showWords = showWords
+    await fs.updateDoc(fs.doc(db, 'users', user.uid), { publicProfile: publicCfg })
+    await publishPublic()
+  } else if (publicCfg.enabled) {
+    publicCfg.enabled = false
+    await fs.updateDoc(fs.doc(db, 'users', user.uid), { publicProfile: publicCfg })
+    if (publicCfg.slug) await fs.deleteDoc(fs.doc(db, 'public', publicCfg.slug)).catch(() => {})
+  }
+  renderPublicLink()
+}
+
+// Arma y guarda la copia pública con los datos actuales.
+async function publishPublic () {
+  if (!user || !publicCfg.enabled || !publicCfg.slug) return
+  const { fs, db } = cloud
+  const snap = await fs.getDoc(fs.doc(db, 'profiles', user.uid))
+  const prof = snap.exists() ? snap.data() : {}
+  const words = app.getWords()
+  const counts = {}
+  words.forEach((w) => { counts[w.category] = (counts[w.category] || 0) + 1 })
+  const c = prof.challenge || {}
+  const data = {
+    uid: user.uid,
+    name: prof.name || user.displayName || 'Usuário',
+    avatar: prof.avatar || null,
+    bio: prof.bio || '',
+    level: prof.level || '',
+    location: prof.location || '',
+    wordCount: words.length,
+    counts,
+    challenge: { ok: c.ok || 0, fail: c.fail || 0, best: c.best || 0 },
+    showWords: !!publicCfg.showWords,
+    updatedAt: Date.now()
+  }
+  if (publicCfg.showWords) {
+    data.words = words.slice(0, MAX_PUBLIC_WORDS).map((w) => {
+      const item = { w: w.word, c: w.category }
+      if (w.meaning) item.m = String(w.meaning).slice(0, 120)
+      if (w.category === 'sustantivo' && app.nounGender) item.a = app.nounGender(w).article
+      const ex = (w.examples || []).filter(Boolean)[0]
+      if (ex) item.e = String(ex).slice(0, 200)
+      return item
+    })
+  }
+  await fs.setDoc(fs.doc(db, 'public', publicCfg.slug), JSON.parse(JSON.stringify(data)))
+}
+
+function schedulePublic () {
+  if (!user || !publicCfg.enabled) return
+  clearTimeout(publicTimer)
+  publicTimer = setTimeout(() => publishPublic().catch((err) => console.warn('Perfil público:', err.code || err)), 8000)
+}
+window.addEventListener('palavras-words-saved', schedulePublic)
+window.addEventListener('palavras-profile', schedulePublic)
+window.addEventListener('palavras-challenge-updated', schedulePublic)
+window.addEventListener('palavras-user', () => { publicCfg = { enabled: false, slug: null, showWords: true }; clearTimeout(publicTimer) })
+
+$('pf-copy').addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText(publicUrl()); app.toast('Link copiado.', 'ok') } catch (e) {
+    $('pf-public-url').select(); app.toast('Selecione e copie o link.', 'info')
+  }
+})
+$('pf-sharelink').addEventListener('click', async () => {
+  const url = publicUrl()
+  if (navigator.share) {
+    try { await navigator.share({ title: 'Meu perfil no Palavras', text: 'Veja meu vocabulário de português no Palavras:', url }) } catch (e) { /* cancelado */ }
+  } else {
+    try { await navigator.clipboard.writeText(url); app.toast('Link copiado.', 'ok') } catch (e) { $('pf-public-url').select() }
+  }
+})
+$('pf-regen').addEventListener('click', async () => {
+  if (!confirm('Gerar um novo link? O link atual vai parar de funcionar.')) return
+  const { fs, db } = cloud
+  const old = publicCfg.slug
+  try {
+    publicCfg.slug = newSlug()
+    await fs.updateDoc(fs.doc(db, 'users', user.uid), { publicProfile: publicCfg })
+    await publishPublic()
+    if (old) await fs.deleteDoc(fs.doc(db, 'public', old)).catch(() => {})
+    renderPublicLink()
+    app.toast('Novo link criado. O anterior não funciona mais.', 'ok')
+  } catch (err) {
+    showError(err)
+    app.toast('Não foi possível gerar o link (' + (err.code || 'erro') + ').', 'info')
+  }
+})

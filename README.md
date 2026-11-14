@@ -23,6 +23,7 @@ Una app web pequeña (HTML + CSS + JavaScript, sin dependencias) para armar tu p
 - **Amigos** (pestaña 👥, con la sesión iniciada): se agrega a otra persona escribiendo su correo exacto; le llega una solicitud que puede aceptar o rechazar. Con el botón 📤 se comparte una palabra (con significado, categoría y el ejemplo que se ve) o la frase del día. Los amigos la ven en **Novedades**, pueden darle ❤️ y agregar la palabra a su propia lista. En «Lo que compartí» se ve la foto y el nombre de quién dio like (los nuevos, marcados); al recibir un like con la app abierta aparece un aviso, y la pestaña muestra un número con los likes nuevos y las solicitudes pendientes. Cada publicación tiene **comentarios** (💬): los ven y escriben el autor y los amigos con quienes se compartió; cada uno puede borrar los suyos y el autor puede borrar cualquiera en lo suyo. Al recibir un comentario aparece un aviso y suma al número de la pestaña. También se puede dejar de compartir (se borran también los comentarios). Solo los amigos ven lo compartido; la lista completa sigue siendo privada.
 - **Ayuda** (botón ❓ arriba): preguntas frecuentes y un formulario «Escríbenos» para sugerencias, reportar algo que no funciona o pedir algo (con correo opcional para responder e información técnica opcional). Se puede enviar con o sin sesión. Los mensajes llegan a una **bandeja** dentro de la misma app, visible solo para las cuentas administradoras (ver abajo).
 - **Perfil** (pestaña 👥 Amigos → «✏️ Mi perfil»): «sobre mí», nivel de portugués y ciudad o país, y la opción «Mis amigos pueden ver mis palabras» (activada por defecto). Tocando el nombre de un amigo (en la lista, las novedades o el ranking) se abre su perfil: datos, cantidad de palabras, resultados del desafío y su lista de palabras, con buscador, filtros y «➕ A mi lista». También se puede ver el propio perfil tal como lo ven los amigos.
+- **Perfil público** (en «✏️ Meu perfil»): opcional. Al activarlo se genera un link (`perfil.html?u=<código al azar>`) que cualquiera puede abrir sin iniciar sesión: foto, nombre, nivel, ciudad, «sobre mim», cantidad de palabras, puntos del desafío y, si se elige, la lista de palabras con buscador. Se actualiza solo cuando cambian el perfil o la lista; «Gerar novo link» invalida el anterior y desactivarlo lo borra. Es una copia aparte (`public/{código}`), así que la lista privada sigue protegida.
 - **Ranking del desafío** (pestaña 🎯): posiciones entre el usuario y sus amigos, por puntos (aciertos), con precisión y mejor racha; vista «Esta semana» (de lunes a domingo) o «Total». Los puntajes que ya existían cuentan en el total desde la primera vez.
 - **Sincronización opcional** entre dispositivos: inicias sesión con Google y ves la misma lista en el celular y en la computadora (usa Firebase; ver abajo). La configuración de notificaciones sigue siendo de cada dispositivo.
 
@@ -62,9 +63,10 @@ Estos datos de configuración no son secretos; lo que protege los datos son las 
 - `posts/{id}/comments/{id}`: comentarios (hasta 500 caracteres); los leen y escriben el autor y la audiencia; nadie puede escribir a nombre de otro.
 
 - `feedback/{id}`: mensajes de ayuda; cualquiera puede enviar uno (con límites de tamaño y campos), solo los administradores los leen, cambian su estado o borran.
+- `public/{código}`: perfil público; cualquiera puede leer uno con el link (sin sesión), nadie puede listarlos y solo su dueño lo escribe o borra (hasta 1000 palabras).
 - `admins/{uid}`: cuentas administradoras; solo se crean desde la consola de Firebase. Un administrador puede además listar `profiles` y `emails` (sección «Usuarios»), pero no leer las listas de palabras ajenas.
 
-Las reglas están probadas con el emulador de Firestore (106 casos de acceso permitido y denegado), y los recorridos completos de la app (amigos, likes, comentarios, ayuda, perfil y ranking) se probaron contra el emulador con estas reglas activas.
+Las reglas están probadas con el emulador de Firestore (118 casos de acceso permitido y denegado), y los recorridos completos de la app (amigos, likes, comentarios, ayuda, perfil y ranking) se probaron contra el emulador con estas reglas activas.
 
 ### Ver los mensajes de ayuda (cuenta administradora)
 
@@ -102,6 +104,7 @@ Al iniciar sesión por primera vez en un dispositivo, las palabras que ya tenía
 | `js/phrases.js` | Frases de motivación, chistes, expresiones, consejos y curiosidades de Brasil |
 | `js/help.js` | Ayuda, formulario de contacto y bandeja de mensajes |
 | `js/social.js` | Amigos, publicaciones compartidas, likes, comentarios y perfiles |
+| `perfil.html`, `js/public-profile.js` | Página del perfil público |
 | `js/leaderboard.js` | Ranking del desafío con amigos |
 | `firestore.rules` | Reglas de seguridad de Firestore |
 | `js/challenge.js` | Modo desafío y puntajes |

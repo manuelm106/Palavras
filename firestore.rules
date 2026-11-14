@@ -69,6 +69,23 @@ service cloud.firestore {
       allow delete: if signedIn() && request.auth.uid in resource.data.members;
     }
 
+    // Perfil público: copia de lo que el usuario elige mostrar, accesible con el link
+    // (id al azar). Se lee de a uno, sin sesión; no se puede listar.
+    match /public/{slug} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.get('bio', '') is string && request.resource.data.get('bio', '').size() <= 300
+        && request.resource.data.get('words', []) is list && request.resource.data.get('words', []).size() <= 1000;
+      allow update: if signedIn()
+        && resource.data.uid == request.auth.uid
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.get('bio', '') is string && request.resource.data.get('bio', '').size() <= 300
+        && request.resource.data.get('words', []) is list && request.resource.data.get('words', []).size() <= 1000;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
     // Lista de administradores: solo se edita desde la consola de Firebase.
     match /admins/{uid} {
       allow get: if isMe(uid);

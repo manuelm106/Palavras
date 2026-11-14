@@ -567,3 +567,16 @@ a.example-source:hover { color: var(--primary); text-decoration: underline; }
 .user-main .muted { margin: 0; }
 .diag summary { cursor: pointer; font-weight: 600; font-size: .9rem; color: var(--muted); }
 .diag code { overflow-wrap: anywhere; background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+/* Perfil público */
+.public-box { margin-top: 10px; padding: 8px 10px; border: 1px dashed var(--border); border-radius: 8px; }
+.public-box .check { margin-top: 4px; }
+.public-link { margin-top: 8px; }
+.public-link input { width: 100%; font: inherit; font-size: .85rem; padding: 7px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+.public-actions { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 6px 0 0 -4px; }
+.public-actions a.link { text-decoration: none; }
+.public-page { display: grid; gap: 16px; padding-top: 12px; padding-bottom: 48px; max-width: 760px; }
+.pp-body { padding: 0; }
+a.help-btn { text-decoration: none; }
+.pp-cta { text-align: center; }
+.pp-cta .btn { display: inline-block; text-decoration: none; margin-top: 6px; }
+#pp-missing .btn { display: inline-block; text-decoration: none; }

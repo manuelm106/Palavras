@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perfil · Palavras</title>
+  <meta name="description" content="Perfil público no Palavras, um app para aprender vocabulário de português.">
+  <meta property="og:title" content="Meu perfil no Palavras">
+  <meta property="og:description" content="Veja meu vocabulário de português no Palavras.">
+  <meta property="og:type" content="profile">
+  <meta name="theme-color" content="#0b7a53">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css?v=46">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="title-row">
+        <h1><img src="icon.svg" alt="" width="32" height="32"> Palavras</h1>
+        <a class="help-btn" href="./">Criar minha lista →</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap public-page">
+    <section id="pp-loading" class="panel"><p class="muted">Carregando perfil…</p></section>
+    <section id="pp-missing" class="panel" hidden>
+      <h2>Perfil não encontrado</h2>
+      <p class="muted">O link pode estar errado, ou a pessoa desativou o perfil público ou gerou um link novo.</p>
+      <a class="btn primary-inline" href="./">Conhecer o Palavras</a>
+    </section>
+    <section id="pp-profile" class="panel" hidden>
+      <div id="pp-body" class="pv-body pp-body"></div>
+    </section>
+    <section id="pp-cta" class="panel pp-cta" hidden>
+      <h2>Aprenda português com o Palavras</h2>
+      <p>Guarde palavras, veja exemplos reais com tradução, descubra o gênero e os verbos irregulares e pratique com o desafio.</p>
+      <a class="btn primary-inline" href="./">Criar minha lista grátis</a>
+    </section>
+  </main>
+
+  <script src="js/classifier.js?v=46"></script>
+  <script src="js/firebase-config.js?v=46"></script>
+  <script type="module" src="js/public-profile.js?v=46"></script>
+</body>
+</html>
