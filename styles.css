@@ -536,3 +536,20 @@ a.example-source:hover { color: var(--primary); text-decoration: underline; }
 .pv-word { border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
 .pv-word .example { margin: 2px 0 0; font-size: .9rem; }
 .pv-body input[type="search"] { margin-bottom: 8px; }
+
+/* ---------- Verbos irregulares ---------- */
+.verb-badge {
+  font-size: .72rem; font-weight: 700; border-radius: 999px; padding: 1px 8px; align-self: center;
+  border: 1px solid currentColor; white-space: nowrap;
+}
+.verb-badge.v-irregular { color: var(--danger); }
+.verb-badge.v-alternancia { color: var(--c-adverbio); }
+.verb-badge.v-participio, .verb-badge.v-leve { color: var(--c-conector); }
+.verb-forms { margin: 6px 0 2px; font-size: .88rem; }
+.verb-forms summary { cursor: pointer; color: var(--primary); font-weight: 600; font-size: .82rem; }
+.verb-forms table { border-collapse: collapse; margin-top: 4px; }
+.verb-forms th { text-align: left; font-weight: 600; color: var(--muted); padding: 2px 10px 2px 0; vertical-align: top; white-space: nowrap; }
+.verb-forms td { padding: 2px 0; }
+.verb-note { margin-top: 6px; font-weight: 600; font-size: .9rem; }
+.cat-irregular { --c: var(--danger); }
+@media print { .p-irreg { font-size: 8pt; color: #b91c1c; margin-top: 1pt; font-weight: 600; } }

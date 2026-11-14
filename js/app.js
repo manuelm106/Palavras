@@ -198,10 +198,12 @@
     Object.keys(CATS).forEach(function (k) { counts[k] = 0 })
     state.words.forEach(function (w) { counts[w.category] = (counts[w.category] || 0) + 1 })
     counts.genero = state.words.filter(function (w) { var c = genderCompare(w); return c && c.status === 'different' }).length
+    counts.irregular = state.words.filter(function (w) { return !!verbInfo(w) }).length
     var keys = ['todas'].concat(Object.keys(CATS))
     if (counts.genero || filter === 'genero') keys.push('genero')
+    if (counts.irregular || filter === 'irregular') keys.push('irregular')
     keys.forEach(function (k) {
-      var label = k === 'todas' ? 'Todas' : k === 'genero' ? '⚠️ Género distinto' : CATS[k].label
+      var label = k === 'todas' ? 'Todas' : k === 'genero' ? '⚠️ Género distinto' : k === 'irregular' ? '⚡ Irregulares' : CATS[k].label
       box.appendChild(el('button', {
         type: 'button',
         class: 'chip' + (filter === k ? ' active' : '') + (k !== 'todas' ? ' cat-' + k : ''),
@@ -213,7 +215,7 @@
 
   function visibleWords () {
     return state.words.filter(function (w) {
-      if (filter === 'genero') { var c = genderCompare(w); if (!c || c.status !== 'different') return false } else if (filter !== 'todas' && w.category !== filter) return false
+      if (filter === 'genero') { var c = genderCompare(w); if (!c || c.status !== 'different') return false } else if (filter === 'irregular') { if (!verbInfo(w)) return false } else if (filter !== 'todas' && w.category !== filter) return false
       if (search && Classifier.normalize(w.word + ' ' + (w.meaning || '')).indexOf(search) === -1) return false
       return true
     })
@@ -294,6 +296,35 @@
     }, [GENDER_LABEL[info.g] + (info.sure ? '' : ' ?')])
     wrap.appendChild(badge)
     return wrap
+  }
+
+  // ---------- Verbos irregulares ----------
+  function verbInfo (w) {
+    return w.category === 'verbo' && window.Verbs ? window.Verbs.info(w.word) : null
+  }
+
+  function verbBadge (w) {
+    var inf = verbInfo(w)
+    if (!inf) return null
+    var label = window.Verbs.labels[inf.type]
+    return el('span', { class: 'verb-badge v-' + inf.type, title: label.long + (inf.base ? ' (como «' + inf.base + '»)' : '') }, [label.short])
+  }
+
+  // Desplegable con las formas clave del verbo irregular.
+  function verbForms (w) {
+    var inf = verbInfo(w)
+    if (!inf) return null
+    var rows = []
+    if (inf.p) rows.push(['Presente', 'eu ' + inf.p[0] + ' · ele/você ' + inf.p[1] + ' · eles/vocês ' + inf.p[2]])
+    if (inf.pp) rows.push(['Pretérito', 'eu ' + inf.pp[0] + ' · ele/você ' + inf.pp[1]])
+    if (inf.f) rows.push(['Futuro', 'eu ' + inf.f])
+    if (inf.pt) rows.push(['Participio', inf.pt])
+    return el('details', { class: 'verb-forms' }, [
+      el('summary', { text: 'Ver formas irregulares' + (inf.base ? ' (se conjuga como «' + inf.base + '»)' : '') }),
+      el('table', {}, [el('tbody', {}, rows.map(function (r) {
+        return el('tr', {}, [el('th', { scope: 'row', text: r[0] }), el('td', { lang: 'pt-BR', text: r[1] })])
+      }))])
+    ])
   }
 
   // Compara el género con el español: { status: 'same' | 'different' | 'check' | 'unknown', pt, es }.
@@ -458,6 +489,7 @@
           w.category === 'sustantivo' ? el('span', { class: 'article', lang: 'pt-BR', text: nounGender(w).article }) : null,
           el('strong', { lang: 'pt-BR', text: w.word }),
           w.category === 'sustantivo' ? genderBadge(w) : null,
+          verbBadge(w),
           el('button', {
             type: 'button',
             class: 'meaning meaning-btn' + (w.meaning ? '' : ' empty'),
@@ -493,6 +525,7 @@
         ])
       ]),
       genderNote(w),
+      verbForms(w),
       el('div', { class: 'example-row' }, [
         exampleBox,
         otherBtn,
@@ -722,7 +755,8 @@
             var gc = genderCompare(w)
             return [
               (w.category === 'sustantivo' ? nounGender(w).article + ' ' : '') + w.word,
-              gc && gc.status === 'different' ? el('div', { class: 'p-diff', text: '⚠ ≠ ' + gc.es.article + ' ' + gc.es.word }) : null
+              gc && gc.status === 'different' ? el('div', { class: 'p-diff', text: '⚠ ≠ ' + gc.es.article + ' ' + gc.es.word }) : null,
+              verbInfo(w) ? el('div', { class: 'p-irreg', text: '⚡ ' + window.Verbs.summary(verbInfo(w)) }) : null
             ]
           })()),
           el('td', { text: w.meaning || '' }),
@@ -815,6 +849,7 @@
     highlight: highlight,
     nounGender: nounGender,
     genderCompare: genderCompare,
+    verbInfo: verbInfo,
     genderLabel: GENDER_LABEL,
     // Agrega una palabra (por ejemplo, compartida por un amigo). Devuelve false si ya estaba.
     addWord: function (data) {

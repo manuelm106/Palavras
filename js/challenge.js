@@ -291,6 +291,14 @@
     res.textContent = current.catOk
       ? '✔ ¡Correcto! Es un ' + CATS[w.category].label.toLowerCase() + '.'
       : '✘ No. «' + w.word + '» es ' + articleFor(w.category) + ' ' + CATS[w.category].label.toLowerCase() + '.'
+    var vi = app.verbInfo && app.verbInfo(w)
+    if (vi) {
+      var vnote = document.createElement('div')
+      vnote.className = 'verb-note'
+      vnote.setAttribute('lang', 'pt-BR')
+      vnote.textContent = '⚡ ' + window.Verbs.labels[vi.type].long + ': ' + window.Verbs.summary(vi)
+      res.appendChild(vnote)
+    }
     var gc = app.genderCompare && app.genderCompare(w)
     if (gc && gc.status === 'different') {
       var alert = document.createElement('div')
