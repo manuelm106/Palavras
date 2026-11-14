@@ -132,6 +132,7 @@ async function init () {
         await fs.setDoc(ref, { words: toMap(words), version: 2 })
       }
       setStatus('Sincronizado ✔')
+      scheduleCount()
     } catch (err) {
       console.error(err)
       synced = previous // se reintenta en el próximo cambio
@@ -294,19 +295,45 @@ async function init () {
 
   // Última visita y cantidad de palabras: una escritura por día y dispositivo
   // (para la sección «Usuarios» del administrador).
-  async function publishActivity () {
+  // Además, la cantidad de palabras se actualiza cuando cambia (agrupando los cambios seguidos).
+  const COUNT_KEY = 'palabras-pt:palabras-publicadas'
+  let countTimer = null
+
+  function publishedCount (userId) {
+    try {
+      const c = JSON.parse(localStorage.getItem(COUNT_KEY) || 'null')
+      return c && c.uid === userId ? c.n : null
+    } catch (e) { return null }
+  }
+
+  async function publishActivity (force) {
     const user = currentUser
     if (!user || !ready || user.uid !== uid) return
     const key = 'palabras-pt:actividad'
     const today = user.uid + ':' + new Date().toISOString().slice(0, 10)
-    try { if (localStorage.getItem(key) === today) return } catch (e) {}
+    const count = app.getWords().length
+    let seenToday = false
+    try { seenToday = localStorage.getItem(key) === today } catch (e) {}
+    if (seenToday && !force && publishedCount(user.uid) === count) return
     try {
-      await fs.setDoc(fs.doc(db, 'profiles', user.uid), { lastSeen: Date.now(), wordCount: app.getWords().length }, { merge: true })
-      try { localStorage.setItem(key, today) } catch (e) {}
+      await fs.setDoc(fs.doc(db, 'profiles', user.uid), { lastSeen: Date.now(), wordCount: count }, { merge: true })
+      try {
+        localStorage.setItem(key, today)
+        localStorage.setItem(COUNT_KEY, JSON.stringify({ uid: user.uid, n: count }))
+      } catch (e) {}
     } catch (err) {
       console.warn('No se pudo registrar la actividad:', err.code || err)
     }
   }
+
+  function scheduleCount () {
+    if (!currentUser || publishedCount(currentUser.uid) === app.getWords().length) return
+    clearTimeout(countTimer)
+    countTimer = setTimeout(() => { countTimer = null; publishActivity(true) }, 5000)
+  }
+  function flushCount () { if (countTimer) { clearTimeout(countTimer); countTimer = null; publishActivity(true) } }
+  window.addEventListener('pagehide', flushCount)
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushCount() })
 
   // ---------- Sesión y escucha de cambios ----------
   auth.onAuthStateChanged(a, (user) => {
