@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0b7a53">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=35">
+  <link rel="stylesheet" href="styles.css?v=36">
 </head>
 <body>
   <header class="site-header">
@@ -323,6 +323,14 @@
       </div>
     </section>
 
+    <section id="diag" class="diag" hidden aria-labelledby="diag-title">
+      <details>
+        <summary id="diag-title">⚙️ Datos de tu cuenta</summary>
+        <p class="small">Tu UID: <code id="diag-uid"></code> <button id="diag-copy" type="button" class="link">Copiar</button></p>
+        <p class="small">Administrador: <span id="diag-admin"></span></p>
+      </details>
+    </section>
+
     <section aria-labelledby="contact-title">
       <h3 id="contact-title">Escríbenos</h3>
       <p class="muted small">¿Una idea, algo que no funciona o algo que te gustaría tener? Cuéntanos.</p>
@@ -349,19 +357,19 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="print-view" class="print-view" aria-hidden="true"></div>
 
-  <script src="js/classifier.js?v=35"></script>
-  <script src="js/sentences.js?v=35"></script>
-  <script src="js/examples.js?v=35"></script>
-  <script src="js/gender-es.js?v=35"></script>
-  <script src="js/verbs.js?v=35"></script>
-  <script src="js/phrases.js?v=35"></script>
-  <script src="js/app.js?v=35"></script>
-  <script src="js/translate.js?v=35"></script>
-  <script src="js/challenge.js?v=35"></script>
-  <script src="js/firebase-config.js?v=35"></script>
-  <script type="module" src="js/sync.js?v=35"></script>
-  <script type="module" src="js/social.js?v=35"></script>
-  <script type="module" src="js/help.js?v=35"></script>
-  <script type="module" src="js/leaderboard.js?v=35"></script>
+  <script src="js/classifier.js?v=36"></script>
+  <script src="js/sentences.js?v=36"></script>
+  <script src="js/examples.js?v=36"></script>
+  <script src="js/gender-es.js?v=36"></script>
+  <script src="js/verbs.js?v=36"></script>
+  <script src="js/phrases.js?v=36"></script>
+  <script src="js/app.js?v=36"></script>
+  <script src="js/translate.js?v=36"></script>
+  <script src="js/challenge.js?v=36"></script>
+  <script src="js/firebase-config.js?v=36"></script>
+  <script type="module" src="js/sync.js?v=36"></script>
+  <script type="module" src="js/social.js?v=36"></script>
+  <script type="module" src="js/help.js?v=36"></script>
+  <script type="module" src="js/leaderboard.js?v=36"></script>
 </body>
 </html>

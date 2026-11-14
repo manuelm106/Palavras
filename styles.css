@@ -565,3 +565,5 @@ a.example-source:hover { color: var(--primary); text-decoration: underline; }
 .user-row { display: flex; gap: 10px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; }
 .user-main { min-width: 0; overflow-wrap: anywhere; }
 .user-main .muted { margin: 0; }
+.diag summary { cursor: pointer; font-weight: 600; font-size: .9rem; color: var(--muted); }
+.diag code { overflow-wrap: anywhere; background: var(--bg); padding: 1px 5px; border-radius: 4px; }

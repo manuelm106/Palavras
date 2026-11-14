@@ -112,13 +112,21 @@ async function checkAdmin (user) {
   users = null
   if ($('users-details')) $('users-details').open = false
   renderInbox()
+  setDiag(user, user ? 'Comprobando…' : null)
   if (!user) return
   const { fs, db } = cloud
   try {
-    const snap = await fs.getDoc(fs.doc(db, 'admins', user.uid))
+    const snap = await fs.getDocFromServer(fs.doc(db, 'admins', user.uid))
     isAdmin = snap.exists()
+    setDiag(user, isAdmin
+      ? '✔ Tu cuenta es administradora.'
+      : 'No encontré el documento admins/' + user.uid + '. Créalo en Firestore (colección «admins», ID del documento = tu UID).')
   } catch (err) {
-    isAdmin = false // sin permiso o sin conexión: no es administrador
+    isAdmin = false
+    // permission-denied: las reglas publicadas no tienen la parte de administradores.
+    setDiag(user, err.code === 'permission-denied'
+      ? 'Firebase no permite comprobarlo: falta publicar las reglas nuevas de Firestore.'
+      : 'No se pudo comprobar (' + (err.code || 'sin conexión') + '). Revisa tu conexión.')
   }
   if (!isAdmin || !cloud.user || cloud.user.uid !== user.uid) { renderInbox(); return }
   const q = fs.query(fs.collection(db, 'feedback'), fs.orderBy('createdAt', 'desc'), fs.limit(100))
@@ -278,3 +286,22 @@ function renderInbox () {
     ])
   ])))
 }
+
+
+// ---------- Diagnóstico de la cuenta (UID y estado de administrador) ----------
+function setDiag (user, text) {
+  const box = $('diag')
+  if (!box) return
+  box.hidden = !user
+  if (!user) return
+  $('diag-uid').textContent = user.uid
+  $('diag-admin').textContent = text || ''
+}
+$('diag-copy').addEventListener('click', async () => {
+  const uid = $('diag-uid').textContent
+  try { await navigator.clipboard.writeText(uid); app.toast('UID copiado.', 'ok') } catch (e) {
+    const r = document.createRange(); r.selectNodeContents($('diag-uid'))
+    const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r)
+    app.toast('Selecciona y copia el UID.', 'info')
+  }
+})
