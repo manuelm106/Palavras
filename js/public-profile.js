@@ -36,6 +36,11 @@ async function main () {
     show('pp-profile')
   } catch (err) {
     console.error(err)
+    if (err && err.code === 'permission-denied') {
+      // Las reglas publicadas en Firestore todavía no permiten ver perfiles públicos.
+      $('pp-missing').querySelector('h2').textContent = 'Perfil indisponível no momento'
+      $('pp-missing').querySelector('p').textContent = 'O Palavras ainda está terminando de configurar os perfis públicos. Tente de novo mais tarde.'
+    }
     show('pp-missing')
   }
 }

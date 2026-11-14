@@ -728,7 +728,34 @@ async function loadMyProfileForm () {
     $('pf-public').checked = !!publicCfg.enabled
     $('pf-public-words').checked = publicCfg.showWords !== false
     renderPublicLink()
+    checkPublic()
   } catch (err) { showError(err) }
+}
+
+// Comprueba que el perfil público exista de verdad (si no, intenta publicarlo y avisa si falla).
+async function checkPublic () {
+  if (!user || !publicCfg.enabled || !publicCfg.slug) return
+  const { fs, db } = cloud
+  try {
+    const snap = await fs.getDocFromServer(fs.doc(db, 'public', publicCfg.slug))
+    if (snap.exists()) { setPublicWarning(''); return }
+    await publishPublic()
+    setPublicWarning('')
+  } catch (err) {
+    setPublicWarning(err.code === 'permission-denied'
+      ? '⚠️ O perfil público não está publicado: falta publicar as regras novas do Firestore. Depois disso, toque em «Salvar perfil».'
+      : '⚠️ Não foi possível verificar o perfil público (' + (err.code || 'sem conexão') + ').')
+  }
+}
+
+function setPublicWarning (text) {
+  let el2 = document.getElementById('pf-public-warning')
+  if (!el2) {
+    el2 = el('p', { id: 'pf-public-warning', class: 'small fb-status warn' })
+    $('pf-public-link').appendChild(el2)
+  }
+  el2.textContent = text
+  el2.hidden = !text
 }
 window.addEventListener('palavras-user', (e) => { if (e.detail) setTimeout(loadMyProfileForm, 0) })
 if (cloud && cloud.user) setTimeout(loadMyProfileForm, 0)
@@ -923,7 +950,16 @@ async function savePublicSettings () {
     publicCfg.enabled = true
     publicCfg.showWords = showWords
     await fs.updateDoc(fs.doc(db, 'users', user.uid), { publicProfile: publicCfg })
-    await publishPublic()
+    renderPublicLink()
+    try {
+      await publishPublic()
+      setPublicWarning('')
+    } catch (err) {
+      setPublicWarning(err.code === 'permission-denied'
+        ? '⚠️ O link foi criado, mas o perfil ainda não pôde ser publicado: falta publicar as regras novas do Firestore. Depois disso, toque em «Salvar perfil».'
+        : '⚠️ Não foi possível publicar o perfil (' + (err.code || 'sem conexão') + '). Tente salvar de novo.')
+      throw err
+    }
   } else if (publicCfg.enabled) {
     publicCfg.enabled = false
     await fs.updateDoc(fs.doc(db, 'users', user.uid), { publicProfile: publicCfg })
