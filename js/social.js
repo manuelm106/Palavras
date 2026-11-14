@@ -107,7 +107,7 @@ function notifyNewRequests () {
     incoming.forEach((id) => {
       if (!knownIncoming.has(id)) {
         const from = friendships.get(id).requestedBy
-        loadProfile(from).then((p) => app.toast((p ? p.name : 'Alguien') + ' te envió una solicitud de amistad. Mírala en 👥 Amigos.', 'ok'))
+        loadProfile(from).then((p) => app.toast((p ? p.name : 'Alguém') + ' te enviou um pedido de amizade. Veja em 👥 Amigos.', 'ok'))
       }
     })
   }
@@ -184,7 +184,7 @@ function notifyNewLikes () {
       const before = prevLikes.get(p.id) || new Set()
       current.get(p.id).forEach((uid) => {
         if (!before.has(uid) && uid !== user.uid) {
-          loadProfile(uid).then((pr) => app.toast((pr ? pr.name : 'Un amigo') + ' le dio ❤️ a ' + postTitle(p) + '.', 'ok'))
+          loadProfile(uid).then((pr) => app.toast((pr ? pr.name : 'Um amigo') + ' curtiu ❤️ ' + postTitle(p) + '.', 'ok'))
         }
       })
     })
@@ -196,7 +196,7 @@ function notifyNewComments () {
   if (prevComments) {
     mine.forEach((p) => {
       if ((p.lastCommentAt || 0) > (prevComments.get(p.id) || 0) && p.lastCommentBy && p.lastCommentBy !== user.uid) {
-        loadProfile(p.lastCommentBy).then((pr) => app.toast('💬 ' + (pr ? pr.name : 'Un amigo') + ' comentó en ' + postTitle(p) + '.', 'ok'))
+        loadProfile(p.lastCommentBy).then((pr) => app.toast('💬 ' + (pr ? pr.name : 'Um amigo') + ' comentou em ' + postTitle(p) + '.', 'ok'))
       }
     })
   }
@@ -267,20 +267,20 @@ async function sendComment (post, text) {
     return true
   } catch (err) {
     showError(err)
-    app.toast('No se pudo enviar el comentario (' + (err.code || 'error') + ').', 'info')
+    app.toast('Não foi possível enviar o comentário (' + (err.code || 'error') + ').', 'info')
     return false
   }
 }
 
 function deleteComment (post, comment) {
-  if (!confirm('¿Borrar este comentario?')) return
+  if (!confirm('Apagar este comentário?')) return
   const { fs, db } = cloud
   const batch = fs.writeBatch(db)
   batch.delete(fs.doc(db, 'posts', post.id, 'comments', comment.id))
   batch.update(fs.doc(db, 'posts', post.id), { commentCount: fs.increment(-1) })
   batch.commit().catch((err) => {
     showError(err)
-    app.toast('No se pudo borrar el comentario (' + (err.code || 'error') + ').', 'info')
+    app.toast('Não foi possível apagar o comentário (' + (err.code || 'error') + ').', 'info')
   })
 }
 
@@ -293,24 +293,24 @@ function commentToggle (p) {
     class: 'link comment-toggle' + (isNew ? ' has-new' : ''),
     'aria-expanded': String(open),
     onclick: () => (open ? (closeThread(p.id), renderPosts()) : openThread(p.id))
-  }, ['💬 ' + (count ? count + (count === 1 ? ' comentario' : ' comentarios') : 'Comentar') + (isNew ? ' · nuevo' : '')])
+  }, ['💬 ' + (count ? count + (count === 1 ? ' comentário' : ' comentários') : 'Comentar') + (isNew ? ' · novo' : '')])
 }
 
 function commentThread (p) {
   if (!openThreads.has(p.id)) return null
   const list = threadData.get(p.id)
   const items = !list
-    ? [el('li', { class: 'muted small', text: 'Cargando comentarios…' })]
+    ? [el('li', { class: 'muted small', text: 'Carregando comentários…' })]
     : !list.length
-        ? [el('li', { class: 'muted small', text: 'Todavía no hay comentarios. ¡Escribe el primero!' })]
+        ? [el('li', { class: 'muted small', text: 'Ainda não há comentários. Escreva o primeiro!' })]
         : list.map((c) => el('li', { class: 'comment' }, [
           avatarEl(c.author, 26),
           el('div', { class: 'comment-main' }, [
             el('div', { class: 'comment-head' }, [
-              el('strong', { text: c.author === user.uid ? 'Tú' : nameOf(c.author) }),
+              el('strong', { text: c.author === user.uid ? 'Você' : nameOf(c.author) }),
               el('span', { class: 'muted small', text: timeAgo(c.createdAt) }),
               c.author === user.uid || p.owner === user.uid
-                ? el('button', { type: 'button', class: 'link danger small-link', text: 'Borrar', onclick: () => deleteComment(p, c) })
+                ? el('button', { type: 'button', class: 'link danger small-link', text: 'Apagar', onclick: () => deleteComment(p, c) })
                 : null
             ]),
             el('p', { class: 'comment-text', text: c.text })
@@ -319,8 +319,8 @@ function commentThread (p) {
   const input = el('input', {
     type: 'text',
     maxlength: '500',
-    placeholder: 'Escribe un comentario…',
-    'aria-label': 'Escribe un comentario',
+    placeholder: 'Escreva um comentário…',
+    'aria-label': 'Escreva um comentário',
     'data-comment-for': p.id
   })
   input.value = drafts.get(p.id) || ''
@@ -363,13 +363,13 @@ $('friend-form').addEventListener('submit', async (e) => {
   const input = $('friend-email')
   const email = input.value.trim().toLowerCase()
   if (!email) return
-  if (email === (user.email || '').toLowerCase()) { setMsg('Ese es tu propio correo 🙂'); return }
+  if (email === (user.email || '').toLowerCase()) { setMsg('Esse é o seu próprio e-mail 🙂'); return }
   const { fs, db } = cloud
-  setMsg('Buscando…')
+  setMsg('Procurando…')
   try {
     const found = await fs.getDoc(fs.doc(db, 'emails', email))
     if (!found.exists()) {
-      setMsg('No encontramos a nadie con ese correo. Pídele que abra Palavras e inicie sesión con Google al menos una vez.')
+      setMsg('Não encontramos ninguém com esse e-mail. Peça para a pessoa abrir o Palavras e entrar com o Google pelo menos uma vez.')
       return
     }
     const fid = found.data().uid
@@ -377,9 +377,9 @@ $('friend-form').addEventListener('submit', async (e) => {
     const existing = friendships.get(id)
     const p = await loadProfile(fid)
     const name = p ? p.name : email
-    if (existing && existing.status === 'accepted') { setMsg('Ya eres amigo de ' + name + '.'); return }
-    if (existing && existing.requestedBy === user.uid) { setMsg('Ya le enviaste una solicitud a ' + name + '. Falta que la acepte.'); return }
-    if (existing) { await accept(id); setMsg(name + ' ya te había enviado una solicitud: ahora son amigos. 🎉'); input.value = ''; return }
+    if (existing && existing.status === 'accepted') { setMsg('Vocês já são amigos: ' + name + '.'); return }
+    if (existing && existing.requestedBy === user.uid) { setMsg('Você já enviou um pedido para ' + name + '. Falta a pessoa aceitar.'); return }
+    if (existing) { await accept(id); setMsg(name + ' já tinha enviado um pedido para você: agora vocês são amigos. 🎉'); input.value = ''; return }
     await fs.setDoc(fs.doc(db, 'friendships', id), {
       members: [user.uid, fid].sort(),
       requestedBy: user.uid,
@@ -387,10 +387,10 @@ $('friend-form').addEventListener('submit', async (e) => {
       createdAt: Date.now()
     })
     input.value = ''
-    setMsg('Solicitud enviada a ' + name + '. Cuando la acepte, verán lo que comparten.')
+    setMsg('Pedido enviado para ' + name + '. Quando aceitar, vocês verão o que compartilham.')
   } catch (err) {
     showError(err)
-    setMsg('No se pudo enviar la solicitud (' + (err.code || 'error') + ').')
+    setMsg('Não foi possível enviar o pedido (' + (err.code || 'error') + ').')
   }
 })
 
@@ -405,10 +405,10 @@ function removeFriendship (id, question) {
 }
 
 async function createPost (data, what) {
-  if (!user) { app.toast('Inicia sesión con Google para compartir con tus amigos.', 'info'); return }
+  if (!user) { app.toast('Entre com o Google para compartilhar com seus amigos.', 'info'); return }
   const friends = acceptedFriends()
   if (!friends.length) {
-    app.toast('Todavía no tienes amigos. Agrégalos por correo en la pestaña 👥 Amigos.', 'info')
+    app.toast('Você ainda não tem amigos. Adicione-os pelo e-mail na aba 👥 Amigos.', 'info')
     return
   }
   const { fs, db } = cloud
@@ -422,10 +422,10 @@ async function createPost (data, what) {
   }, data)
   try {
     await fs.setDoc(fs.doc(db, 'posts', newPostId(user.uid)), JSON.parse(JSON.stringify(post)))
-    app.toast('Compartiste ' + what + ' con ' + friends.length + (friends.length === 1 ? ' amigo.' : ' amigos.'), 'ok')
+    app.toast('Você compartilhou ' + what + ' com ' + friends.length + (friends.length === 1 ? ' amigo.' : ' amigos.'), 'ok')
   } catch (err) {
     showError(err)
-    app.toast('No se pudo compartir (' + (err.code || 'error') + ').', 'info')
+    app.toast('Não foi possível compartilhar (' + (err.code || 'error') + ').', 'info')
   }
 }
 
@@ -437,7 +437,7 @@ function toggleLike (post) {
 }
 
 async function deletePost (post) {
-  if (!confirm('¿Dejar de compartir esto? Tus amigos ya no lo verán (ni sus comentarios).')) return
+  if (!confirm('Deixar de compartilhar? Seus amigos não vão ver mais isto (nem os comentários).')) return
   const { fs, db } = cloud
   try {
     closeThread(post.id)
@@ -451,7 +451,7 @@ async function deletePost (post) {
     await fs.deleteDoc(fs.doc(db, 'posts', post.id))
   } catch (err) {
     showError(err)
-    app.toast('No se pudo dejar de compartir (' + (err.code || 'error') + ').', 'info')
+    app.toast('Não foi possível deixar de compartilhar (' + (err.code || 'error') + ').', 'info')
   }
 }
 
@@ -475,7 +475,7 @@ window.PalavrasSocial = {
     createPost(data, '«' + w.word + '»')
   },
   sharePhrase (q) {
-    createPost({ type: 'phrase', kind: q.label, icon: q.icon, pt: q.pt, es: q.es }, 'la frase')
+    createPost({ type: 'phrase', kind: q.label, icon: q.icon, pt: q.pt, es: q.es }, 'a frase')
   }
 }
 
@@ -493,7 +493,7 @@ function setMsg (text) { $('friend-msg').textContent = text }
 function showError (err) {
   console.error(err)
   if (err && err.code === 'permission-denied') {
-    setMsg('Sin permiso: hay que actualizar las reglas de Firestore para usar amigos.')
+    setMsg('Sem permissão: é preciso atualizar as regras do Firestore para usar amigos.')
   }
 }
 
@@ -531,14 +531,14 @@ function nameOf (uid, fallback) {
 
 function timeAgo (ms) {
   const s = Math.max(0, Math.round((Date.now() - ms) / 1000))
-  if (s < 60) return 'recién'
+  if (s < 60) return 'agora'
   const m = Math.round(s / 60)
-  if (m < 60) return 'hace ' + m + ' min'
+  if (m < 60) return 'há ' + m + ' min'
   const h = Math.round(m / 60)
-  if (h < 24) return 'hace ' + h + ' h'
+  if (h < 24) return 'há ' + h + ' h'
   const d = Math.round(h / 24)
-  if (d < 30) return 'hace ' + d + (d === 1 ? ' día' : ' días')
-  return new Date(ms).toLocaleDateString('es')
+  if (d < 30) return 'há ' + d + (d === 1 ? ' dia' : ' dias')
+  return new Date(ms).toLocaleDateString('pt-BR')
 }
 
 function renderAll () {
@@ -558,8 +558,8 @@ function renderFriends () {
     avatarEl(f.requestedBy, 32),
     el('span', { class: 'person-name', text: nameOf(f.requestedBy) }),
     el('span', { class: 'person-actions' }, [
-      el('button', { type: 'button', class: 'btn small primary-inline', text: 'Aceptar', onclick: () => accept(id) }),
-      el('button', { type: 'button', class: 'link danger', text: 'Rechazar', onclick: () => removeFriendship(id) })
+      el('button', { type: 'button', class: 'btn small primary-inline', text: 'Aceitar', onclick: () => accept(id) }),
+      el('button', { type: 'button', class: 'link danger', text: 'Recusar', onclick: () => removeFriendship(id) })
     ])
   ])))
 
@@ -568,7 +568,7 @@ function renderFriends () {
     avatarEl(otherOf(f), 32),
     el('span', { class: 'person-name', text: nameOf(otherOf(f)) }),
     el('span', { class: 'person-actions' }, [
-      el('span', { class: 'muted small', text: 'Pendiente' }),
+      el('span', { class: 'muted small', text: 'Pendente' }),
       el('button', { type: 'button', class: 'link danger', text: 'Cancelar', onclick: () => removeFriendship(id) })
     ])
   ])))
@@ -581,11 +581,15 @@ function renderFriends () {
       avatarEl(fid, 32),
       el('button', { type: 'button', class: 'person-name link-name', title: 'Ver perfil', onclick: () => openProfile(fid) }, [nameOf(fid)]),
       el('span', { class: 'person-actions' }, [
-        el('button', { type: 'button', class: 'link danger', text: 'Eliminar', onclick: () => removeFriendship(id, '¿Eliminar a ' + nameOf(fid) + ' de tus amigos?') })
+        el('button', { type: 'button', class: 'link danger', text: 'Remover', onclick: () => removeFriendship(id, 'Remover ' + nameOf(fid) + ' dos seus amigos?') })
       ])
     ])
   }))
 }
+
+// Nombres de las categorías en portugués (la pestaña de amigos está en portugués).
+const CAT_PT = { sustantivo: 'Substantivo', adjetivo: 'Adjetivo', verbo: 'Verbo', adverbio: 'Advérbio', conector: 'Conectivo', expresion: 'Expressão' }
+function catPt (k) { return CAT_PT[k] || k }
 
 // Lo compartido antes de esta versión guardó el título en español.
 const KIND_PT = { 'Motivación': 'Motivação', 'Chiste': 'Piada', 'Expresión': 'Expressão', 'Consejo': 'Dica', 'Curiosidad de Brasil': 'Curiosidade do Brasil' }
@@ -605,7 +609,7 @@ function postBody (p) {
       el('span', { class: 'dot cat-' + p.category, 'aria-hidden': 'true' }),
       p.article ? el('span', { class: 'article', lang: 'pt-BR', text: p.article }) : null,
       el('strong', { lang: 'pt-BR', text: p.word }),
-      el('span', { class: 'badge cat-' + p.category, text: cats[p.category] ? cats[p.category].label : '' }),
+      el('span', { class: 'badge cat-' + p.category, text: catPt(p.category) }),
       p.meaning ? el('span', { class: 'meaning', text: '— ' + p.meaning }) : null
     ]),
     p.example ? el('p', { class: 'example', lang: 'pt-BR', text: p.example }) : null
@@ -620,8 +624,8 @@ function renderFeed () {
   if (signedOut) { list.replaceChildren(); return }
   $('feed-empty').hidden = feed.length > 0
   $('feed-empty').textContent = acceptedFriends().length
-    ? 'Tus amigos todavía no compartieron nada. ¡Comparte tú primero con el botón 📤 de cualquier palabra!'
-    : 'Agrega amigos por correo para ver aquí las palabras y frases que comparten.'
+    ? 'Seus amigos ainda não compartilharam nada. Compartilhe você primeiro com o botão 📤 de qualquer palavra!'
+    : 'Adicione amigos pelo e-mail para ver aqui as palavras e frases que eles compartilham.'
   list.replaceChildren(...feed.map((p) => {
     const likes = Object.keys(p.likes || {})
     const liked = likes.includes(user.uid)
@@ -631,7 +635,7 @@ function renderFeed () {
         avatarEl(p.owner, 32),
         el('div', {}, [
           el('button', { type: 'button', class: 'link-name', title: 'Ver perfil', onclick: () => openProfile(p.owner) }, [nameOf(p.owner, p.ownerName)]),
-          el('div', { class: 'muted small', text: (p.type === 'phrase' ? 'compartió una frase · ' : 'compartió una palabra · ') + timeAgo(p.createdAt) })
+          el('div', { class: 'muted small', text: (p.type === 'phrase' ? 'compartilhou uma frase · ' : 'compartilhou uma palavra · ') + timeAgo(p.createdAt) })
         ])
       ]),
       postBody(p),
@@ -640,19 +644,19 @@ function renderFeed () {
           type: 'button',
           class: 'like-btn' + (liked ? ' liked' : ''),
           'aria-pressed': String(liked),
-          'aria-label': liked ? 'Quitar me gusta' : 'Me gusta',
+          'aria-label': liked ? 'Descurtir' : 'Curtir',
           onclick: () => toggleLike(p)
         }, [(liked ? '❤️' : '🤍') + ' ' + likes.length]),
         likes.length ? el('span', { class: 'likers-inline', text: likersText(likes) }) : null,
-        el('button', { type: 'button', class: 'link', text: '🔊 Escuchar', onclick: () => app.speak(speakText.replace(/[—«»]/g, ' ')) }),
+        el('button', { type: 'button', class: 'link', text: '🔊 Ouvir', onclick: () => app.speak(speakText.replace(/[—«»]/g, ' ')) }),
         p.type === 'word'
           ? el('button', {
             type: 'button',
             class: 'link',
-            text: '➕ A mi lista',
+            text: '➕ Na minha lista',
             onclick: () => {
               const added = app.addWord({ word: p.word, category: p.category, meaning: p.meaning, gender: p.gender, examples: p.example ? [p.example] : [] })
-              app.toast(added ? 'Agregaste «' + p.word + '» a tu lista.' : '«' + p.word + '» ya está en tu lista.', added ? 'ok' : 'info')
+              app.toast(added ? 'Você adicionou «' + p.word + '» à sua lista.' : '«' + p.word + '» já está na sua lista.', added ? 'ok' : 'info')
             }
           })
           : null,
@@ -664,9 +668,9 @@ function renderFeed () {
 }
 
 function likersText (uids) {
-  const names = uids.map((uid) => (uid === user.uid ? 'Tú' : nameOf(uid)))
-  if (names.length <= 2) return names.join(' y ')
-  return names.slice(0, 2).join(', ') + ' y ' + (names.length - 2) + ' más'
+  const names = uids.map((uid) => (uid === user.uid ? 'Você' : nameOf(uid)))
+  if (names.length <= 2) return names.join(' e ')
+  return names.slice(0, 2).join(', ') + ' e mais ' + (names.length - 2)
 }
 
 function renderMine () {
@@ -679,21 +683,21 @@ function renderMine () {
     const likes = Object.entries(p.likes || {}).sort((a, b) => likeTime(b[1]) - likeTime(a[1]))
     const likers = likes.length
       ? el('div', { class: 'likers' }, [
-        el('span', { class: 'likers-title', text: '❤️ ' + likes.length + ' · Le gusta a:' }),
+        el('span', { class: 'likers-title', text: '❤️ ' + likes.length + ' · Curtido por:' }),
         ...likes.map(([uid, v]) => el('span', { class: 'liker' + (likeTime(v) > highlightSince ? ' new' : '') }, [
           avatarEl(uid, 22),
           el('span', { text: nameOf(uid) }),
-          likeTime(v) > highlightSince ? el('span', { class: 'new-tag', text: 'nuevo' }) : null
+          likeTime(v) > highlightSince ? el('span', { class: 'new-tag', text: 'novo' }) : null
         ]))
       ])
-      : el('div', { class: 'likers muted small', text: 'Todavía sin ❤️' })
+      : el('div', { class: 'likers muted small', text: 'Ainda sem ❤️' })
     return el('li', { class: 'post compact' }, [
       postBody(p),
       likers,
       el('div', { class: 'post-actions' }, [
         commentToggle(p),
-        el('span', { class: 'muted small', text: 'Compartido ' + timeAgo(p.createdAt) }),
-        el('button', { type: 'button', class: 'link danger', text: 'Dejar de compartir', onclick: () => deletePost(p) })
+        el('span', { class: 'muted small', text: 'Compartilhado ' + timeAgo(p.createdAt) }),
+        el('button', { type: 'button', class: 'link danger', text: 'Deixar de compartilhar', onclick: () => deletePost(p) })
       ]),
       commentThread(p)
     ])
@@ -702,7 +706,7 @@ function renderMine () {
 
 
 // ---------- Mi perfil (sobre mí, nivel, privacidad) ----------
-const LEVELS = { principiante: '🌱 Principiante', intermedio: '🌿 Intermedio', avanzado: '🌳 Avanzado', nativo: '🇧🇷 Nativo' }
+const LEVELS = { principiante: '🌱 Iniciante', intermedio: '🌿 Intermediário', avanzado: '🌳 Avançado', nativo: '🇧🇷 Nativo' }
 
 $('pf-bio').addEventListener('input', () => { $('pf-bio-count').textContent = $('pf-bio').value.length + ' / 300' })
 
@@ -730,7 +734,7 @@ $('profile-form').addEventListener('submit', async (e) => {
   if (!user) return
   const { fs, db } = cloud
   const status = $('pf-status')
-  status.textContent = 'Guardando…'
+  status.textContent = 'Salvando…'
   status.className = 'small'
   try {
     await fs.setDoc(fs.doc(db, 'profiles', user.uid), {
@@ -740,13 +744,13 @@ $('profile-form').addEventListener('submit', async (e) => {
     }, { merge: true })
     await fs.updateDoc(fs.doc(db, 'users', user.uid), { shareWords: $('pf-share').checked })
     profiles.delete(user.uid)
-    status.textContent = 'Perfil guardado ✔'
+    status.textContent = 'Perfil salvo ✔'
     status.className = 'small fb-status ok'
   } catch (err) {
     showError(err)
     status.textContent = err.code === 'permission-denied'
-      ? 'No se pudo guardar: falta actualizar las reglas de Firestore.'
-      : 'No se pudo guardar (' + (err.code || 'error') + ').'
+      ? 'Não foi possível salvar: falta atualizar as regras do Firestore.'
+      : 'Não foi possível salvar (' + (err.code || 'erro') + ').'
     status.className = 'small fb-status warn'
   }
 })
@@ -760,7 +764,7 @@ pvDialog.addEventListener('click', (e) => { if (e.target === pvDialog) pvDialog.
 async function openProfile (uid) {
   if (!user || !uid) return
   const body = $('pv-body')
-  body.replaceChildren(el('p', { class: 'muted', text: 'Cargando perfil…' }))
+  body.replaceChildren(el('p', { class: 'muted', text: 'Carregando perfil…' }))
   if (typeof pvDialog.showModal === 'function') { if (!pvDialog.open) pvDialog.showModal() } else pvDialog.setAttribute('open', '')
   const { fs, db } = cloud
   const isMe = uid === user.uid
@@ -792,7 +796,7 @@ async function openProfile (uid) {
 function renderProfile (uid, prof, words, hidden) {
   const body = $('pv-body')
   const isMe = uid === user.uid
-  const name = prof.name || 'Usuario'
+  const name = prof.name || 'Usuário'
   const c = prof.challenge || {}
   const week = window.PalavrasChallenge && window.PalavrasChallenge.weekId ? (c.weeks || {})[window.PalavrasChallenge.weekId()] : null
   const total = (c.ok || 0) + (c.fail || 0)
@@ -801,7 +805,7 @@ function renderProfile (uid, prof, words, hidden) {
   const head = el('div', { class: 'pv-head' }, [
     avatarEl(uid, 64),
     el('div', {}, [
-      el('h3', { id: 'pv-name', class: 'pv-name', text: name + (isMe ? ' (tú)' : '') }),
+      el('h3', { id: 'pv-name', class: 'pv-name', text: name + (isMe ? ' (você)' : '') }),
       el('div', { class: 'pv-meta' }, [
         LEVELS[prof.level] ? el('span', { class: 'pv-tag', text: LEVELS[prof.level] }) : null,
         prof.location ? el('span', { class: 'pv-tag', text: '📍 ' + prof.location }) : null
@@ -810,19 +814,19 @@ function renderProfile (uid, prof, words, hidden) {
   ])
   const bio = prof.bio
     ? el('p', { class: 'pv-bio', text: prof.bio })
-    : el('p', { class: 'pv-bio muted', text: isMe ? 'Todavía no escribiste nada sobre ti. Complétalo en «✏️ Mi perfil».' : name + ' todavía no escribió nada sobre sí.' })
+    : el('p', { class: 'pv-bio muted', text: isMe ? 'Você ainda não escreveu nada sobre você. Complete em «✏️ Meu perfil».' : name + ' ainda não escreveu nada sobre si.' })
 
   const statsBox = el('div', { class: 'pv-stats' }, [
-    el('div', { class: 'score' }, [el('span', { text: words ? String(words.length) : '—' }), el('small', { text: 'palabras' })]),
-    el('div', { class: 'score ok' }, [el('span', { text: String(c.ok || 0) }), el('small', { text: 'aciertos en el desafío' })]),
-    el('div', { class: 'score' }, [el('span', { text: total ? Math.round(100 * (c.ok || 0) / total) + '%' : '–' }), el('small', { text: 'precisión' })]),
-    el('div', { class: 'score' }, [el('span', { text: String((week && week.ok) || 0) }), el('small', { text: 'aciertos esta semana' + (c.best ? ' · racha ' + c.best : '') })])
+    el('div', { class: 'score' }, [el('span', { text: words ? String(words.length) : '—' }), el('small', { text: 'palavras' })]),
+    el('div', { class: 'score ok' }, [el('span', { text: String(c.ok || 0) }), el('small', { text: 'acertos no desafio' })]),
+    el('div', { class: 'score' }, [el('span', { text: total ? Math.round(100 * (c.ok || 0) / total) + '%' : '–' }), el('small', { text: 'precisão' })]),
+    el('div', { class: 'score' }, [el('span', { text: String((week && week.ok) || 0) }), el('small', { text: 'acertos nesta semana' + (c.best ? ' · sequência ' + c.best : '') })])
   ])
 
   const section = [head, bio, statsBox]
 
   if (hidden) {
-    section.push(el('p', { class: 'pv-hidden', text: '🔒 ' + name + ' no comparte su lista de palabras.' }))
+    section.push(el('p', { class: 'pv-hidden', text: '🔒 ' + name + ' não compartilha a lista de palavras.' }))
   } else if (words) {
     const counts = {}
     words.forEach((w) => { counts[w.category] = (counts[w.category] || 0) + 1 })
@@ -830,7 +834,7 @@ function renderProfile (uid, prof, words, hidden) {
     let query = ''
     const list = el('ul', { class: 'pv-words' })
     const chips = el('div', { class: 'filters' })
-    const search = el('input', { type: 'search', placeholder: 'Buscar en sus palabras…', 'aria-label': 'Buscar palabras' })
+    const search = el('input', { type: 'search', placeholder: 'Buscar nas palavras…', 'aria-label': 'Buscar palavras' })
     const more = el('p', { class: 'muted small' })
     const norm = (t) => window.Classifier.normalize(t || '')
     function draw () {
@@ -838,7 +842,7 @@ function renderProfile (uid, prof, words, hidden) {
         type: 'button',
         class: 'chip' + (filter === k ? ' active' : '') + (k !== 'todas' ? ' cat-' + k : ''),
         onclick: () => { filter = k; draw() }
-      }, [(k === 'todas' ? 'Todas' : cats[k].label) + ' ', el('span', { class: 'count', text: String(k === 'todas' ? words.length : counts[k]) })])))
+      }, [(k === 'todas' ? 'Todas' : catPt(k)) + ' ', el('span', { class: 'count', text: String(k === 'todas' ? words.length : counts[k]) })])))
       const items = words.filter((w) => (filter === 'todas' || w.category === filter) && (!query || norm(w.word + ' ' + (w.meaning || '')).includes(query)))
       list.replaceChildren(...items.slice(0, 200).map((w) => {
         const article = w.category === 'sustantivo' && app.nounGender ? app.nounGender(w).article + ' ' : ''
@@ -853,23 +857,23 @@ function renderProfile (uid, prof, words, hidden) {
           isMe ? null : el('button', {
             type: 'button',
             class: 'link',
-            text: '➕ A mi lista',
+            text: '➕ Na minha lista',
             onclick: (e) => {
               const added = app.addWord({ word: w.word, category: w.category, meaning: w.meaning, gender: w.gender, examples: example ? [example] : [] })
-              app.toast(added ? 'Agregaste «' + w.word + '» a tu lista.' : '«' + w.word + '» ya está en tu lista.', added ? 'ok' : 'info')
-              if (added) { e.target.textContent = '✓ Agregada'; e.target.disabled = true }
+              app.toast(added ? 'Você adicionou «' + w.word + '» à sua lista.' : '«' + w.word + '» já está na sua lista.', added ? 'ok' : 'info')
+              if (added) { e.target.textContent = '✓ Adicionada'; e.target.disabled = true }
             }
           })
         ])
       }))
-      more.textContent = items.length > 200 ? 'Se muestran 200 de ' + items.length + '. Usa el buscador para encontrar más.' : (items.length ? '' : 'No hay palabras que coincidan.')
+      more.textContent = items.length > 200 ? 'Mostrando 200 de ' + items.length + '. Use a busca para encontrar mais.' : (items.length ? '' : 'Nenhuma palavra encontrada.')
     }
     search.addEventListener('input', () => { query = norm(search.value); draw() })
     draw()
-    section.push(el('h3', { class: 'pv-words-title', text: isMe ? 'Tus palabras' : 'Palabras de ' + name }))
+    section.push(el('h3', { class: 'pv-words-title', text: isMe ? 'Suas palavras' : 'Palavras de ' + name }))
     if (words.length) section.push(search, chips, list, more)
-    else section.push(el('p', { class: 'muted', text: 'Todavía no tiene palabras.' }))
+    else section.push(el('p', { class: 'muted', text: 'Ainda não tem palavras.' }))
   }
-  if (isMe) section.push(el('p', { class: 'muted small', text: 'Así ven tu perfil tus amigos. Tus palabras ' + ($('pf-share').checked ? 'son visibles para ellos.' : 'no son visibles (lo cambias en «✏️ Mi perfil»).') }))
+  if (isMe) section.push(el('p', { class: 'muted small', text: 'É assim que seus amigos veem seu perfil. Suas palavras ' + ($('pf-share').checked ? 'estão visíveis para eles.' : 'não estão visíveis (mude isso em «✏️ Meu perfil»).') }))
   body.replaceChildren(...section)
 }

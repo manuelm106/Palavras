@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#0b7a53">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=40">
+  <link rel="stylesheet" href="styles.css?v=42">
 </head>
 <body>
   <header class="site-header">
@@ -199,78 +199,78 @@
     </aside>
   </main>
 
-  <main id="view-friends" class="wrap" role="tabpanel" aria-labelledby="tab-friends" hidden>
+  <main id="view-friends" class="wrap" role="tabpanel" aria-labelledby="tab-friends" lang="pt-BR" hidden>
     <section id="friends-signin" class="panel friends-signin" hidden>
-      <p>Inicia sesión con Google para agregar amigos y compartir palabras y frases.</p>
+      <p>Entre com o Google para adicionar amigos e compartilhar palavras e frases.</p>
     </section>
     <div id="friends-main" class="friends-layout">
       <section class="panel" aria-labelledby="feed-title">
-        <h2 id="feed-title">Novedades de tus amigos</h2>
+        <h2 id="feed-title">Novidades dos seus amigos</h2>
         <p id="feed-empty" class="empty"></p>
         <ul id="feed" class="feed"></ul>
       </section>
 
       <section class="panel my-posts-panel" aria-labelledby="my-posts-title">
-        <h2 id="my-posts-title">Lo que compartí <span id="my-likes-total" class="likes-total"></span></h2>
-        <p id="my-posts-empty" class="muted small">Comparte una palabra con el botón 📤 de tu lista, o la frase de arriba con «📤 Compartir». Aquí verás quién le dio ❤️.</p>
+        <h2 id="my-posts-title">O que eu compartilhei <span id="my-likes-total" class="likes-total"></span></h2>
+        <p id="my-posts-empty" class="muted small">Compartilhe uma palavra com o botão 📤 da sua lista, ou a frase lá de cima com «📤 Compartir». Aqui você verá quem curtiu ❤️.</p>
         <ul id="my-posts" class="feed"></ul>
       </section>
 
       <aside class="panel" aria-labelledby="add-friend-title">
         <details id="my-profile" class="my-profile">
-          <summary><strong>✏️ Mi perfil</strong> <span class="muted small">sobre mí, nivel y privacidad</span></summary>
+          <summary><strong>✏️ Meu perfil</strong> <span class="muted small">sobre mim, nível e privacidade</span></summary>
           <form id="profile-form" class="profile-form" autocomplete="off">
-            <label for="pf-bio">Sobre mí</label>
-            <textarea id="pf-bio" rows="3" maxlength="300" placeholder="Cuéntales a tus amigos quién eres y por qué aprendes portugués."></textarea>
+            <label for="pf-bio">Sobre mim</label>
+            <textarea id="pf-bio" rows="3" maxlength="300" placeholder="Conte aos seus amigos quem você é e por que aprende português."></textarea>
             <p id="pf-bio-count" class="muted small fb-count">0 / 300</p>
-            <label for="pf-level">Nivel de portugués</label>
+            <label for="pf-level">Nível de português</label>
             <select id="pf-level">
-              <option value="">Sin indicar</option>
-              <option value="principiante">🌱 Principiante</option>
-              <option value="intermedio">🌿 Intermedio</option>
-              <option value="avanzado">🌳 Avanzado</option>
+              <option value="">Não informado</option>
+              <option value="principiante">🌱 Iniciante</option>
+              <option value="intermedio">🌿 Intermediário</option>
+              <option value="avanzado">🌳 Avançado</option>
               <option value="nativo">🇧🇷 Nativo</option>
             </select>
-            <label for="pf-location">Ciudad o país <span class="optional">(opcional)</span></label>
-            <input id="pf-location" type="text" maxlength="60" placeholder="ej.: Buenos Aires, Argentina">
-            <label class="check"><input id="pf-share" type="checkbox" checked> Mis amigos pueden ver mis palabras</label>
+            <label for="pf-location">Cidade ou país <span class="optional">(opcional)</span></label>
+            <input id="pf-location" type="text" maxlength="60" placeholder="ex.: Buenos Aires, Argentina">
+            <label class="check"><input id="pf-share" type="checkbox" checked> Meus amigos podem ver minhas palavras</label>
             <div class="profile-actions">
-              <button type="submit" class="btn small primary-inline">Guardar perfil</button>
-              <button id="pf-preview" type="button" class="link">Ver mi perfil como lo ven mis amigos</button>
+              <button type="submit" class="btn small primary-inline">Salvar perfil</button>
+              <button id="pf-preview" type="button" class="link">Ver meu perfil como meus amigos o veem</button>
             </div>
             <p id="pf-status" class="small" aria-live="polite"></p>
           </form>
         </details>
 
-        <h2 id="add-friend-title">Agregar amigo</h2>
+        <h2 id="add-friend-title">Adicionar amigo</h2>
         <form id="friend-form" class="friend-form" autocomplete="off">
-          <input id="friend-email" type="email" inputmode="email" placeholder="correo@gmail.com" aria-label="Correo de tu amigo" required>
-          <button type="submit" class="btn">Enviar solicitud</button>
+          <input id="friend-email" type="email" inputmode="email" placeholder="email@gmail.com" aria-label="E-mail do seu amigo" required>
+          <button type="submit" class="btn">Enviar pedido</button>
         </form>
         <p id="friend-msg" class="muted small" aria-live="polite"></p>
 
         <div id="req-in-box" hidden>
-          <h3 class="ch-step">Solicitudes recibidas</h3>
+          <h3 class="ch-step">Pedidos recebidos</h3>
           <ul id="req-in" class="people"></ul>
         </div>
         <div id="req-out-box" hidden>
-          <h3 class="ch-step">Solicitudes enviadas</h3>
+          <h3 class="ch-step">Pedidos enviados</h3>
           <ul id="req-out" class="people"></ul>
         </div>
 
-        <h3 class="ch-step">Mis amigos (<span id="friends-count">0</span>)</h3>
-        <p id="friends-empty" class="muted small">Todavía no tienes amigos agregados.</p>
+        <h3 class="ch-step">Meus amigos (<span id="friends-count">0</span>)</h3>
+        <p id="friends-empty" class="muted small">Você ainda não adicionou amigos.</p>
         <ul id="friends-list" class="people"></ul>
 
-        <p class="muted small">Solo tus amigos ven lo que compartes. Para encontrarte, alguien necesita tu correo exacto.</p>
+        <p class="muted small">Só seus amigos veem o que você compartilha. Para encontrar você, alguém precisa do seu e-mail exato.</p>
       </aside>
     </div>
   </main>
 
-  <dialog id="profile-dialog" class="help-dialog profile-dialog" aria-labelledby="pv-name">
+  <dialog id="profile-dialog" class="help-dialog profile-dialog" aria-labelledby="pv-name" lang="pt-BR">
     <div class="help-head">
       <h2>Perfil</h2>
-      <button id="pv-close" type="button" class="icon-btn" aria-label="Cerrar">✕</button>
+      <button id="pv-close" type="button" class="icon-btn" aria-label="Fechar">✕</button>
     </div>
     <div id="pv-body" class="pv-body"></div>
   </dialog>
@@ -317,7 +317,7 @@
         <details><summary>Como vejo minha lista em outro aparelho?</summary>
           <p>Entre com sua conta do Google no topo da página: sua lista, pontuações e foto são sincronizadas em todos os seus aparelhos.</p></details>
         <details><summary>Como adiciono amigos? Eles veem minhas palavras?</summary>
-          <p>Na aba 👥 Amigos, escreva o e-mail do seu amigo (ele precisa ter entrado no app pelo menos uma vez). Seus amigos podem ver seu perfil e suas palavras; se preferir, desative isso em «✏️ Mi perfil». Além disso, você pode compartilhar palavras e frases com o botão 📤.</p></details>
+          <p>Na aba 👥 Amigos, escreva o e-mail do seu amigo (ele precisa ter entrado no app pelo menos uma vez). Seus amigos podem ver seu perfil e suas palavras; se preferir, desative isso em «✏️ Meu perfil». Além disso, você pode compartilhar palavras e frases com o botão 📤.</p></details>
         <details><summary>Como salvo minha lista?</summary>
           <p>Embaixo da lista: «Exportar a PDF» para imprimir ou salvar, e «Exportar lista (JSON)» para ter uma cópia que você pode importar de novo.</p></details>
       </div>
@@ -357,19 +357,19 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="print-view" class="print-view" aria-hidden="true"></div>
 
-  <script src="js/classifier.js?v=40"></script>
-  <script src="js/sentences.js?v=40"></script>
-  <script src="js/examples.js?v=40"></script>
-  <script src="js/gender-es.js?v=40"></script>
-  <script src="js/verbs.js?v=40"></script>
-  <script src="js/phrases.js?v=40"></script>
-  <script src="js/app.js?v=40"></script>
-  <script src="js/translate.js?v=40"></script>
-  <script src="js/challenge.js?v=40"></script>
-  <script src="js/firebase-config.js?v=40"></script>
-  <script type="module" src="js/sync.js?v=40"></script>
-  <script type="module" src="js/social.js?v=40"></script>
-  <script type="module" src="js/help.js?v=40"></script>
-  <script type="module" src="js/leaderboard.js?v=40"></script>
+  <script src="js/classifier.js?v=42"></script>
+  <script src="js/sentences.js?v=42"></script>
+  <script src="js/examples.js?v=42"></script>
+  <script src="js/gender-es.js?v=42"></script>
+  <script src="js/verbs.js?v=42"></script>
+  <script src="js/phrases.js?v=42"></script>
+  <script src="js/app.js?v=42"></script>
+  <script src="js/translate.js?v=42"></script>
+  <script src="js/challenge.js?v=42"></script>
+  <script src="js/firebase-config.js?v=42"></script>
+  <script type="module" src="js/sync.js?v=42"></script>
+  <script type="module" src="js/social.js?v=42"></script>
+  <script type="module" src="js/help.js?v=42"></script>
+  <script type="module" src="js/leaderboard.js?v=42"></script>
 </body>
 </html>
