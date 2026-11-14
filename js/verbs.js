@@ -49,7 +49,7 @@
     prover: v(I, ['provejo', 'provê', 'proveem'], ['provi', 'proveu'], 'provido'),
     sair: v(I, ['saio', 'sai', 'saem'], ['saí', 'saiu'], 'saído'),
     cair: v(I, ['caio', 'cai', 'caem'], ['caí', 'caiu'], 'caído'),
-    morrer: v('participio', null, null, 'morto (o morrido)'),
+    morrer: v('participio', null, null, 'morto (ou morrido)'),
     // Cambian la vocal de la raíz
     dormir: v(A, ['durmo', 'dorme', 'dormem'], ['dormi', 'dormiu'], 'dormido'),
     tossir: v(A, ['tusso', 'tosse', 'tossem'], ['tossi', 'tossiu'], 'tossido'),
@@ -88,7 +88,7 @@
     suspender: v('participio', null, null, 'suspenso'),
     expressar: v('participio', null, null, 'expresso'),
     extinguir: v('participio', null, null, 'extinto'),
-    matar: v('participio', null, null, 'morto (o matado)')
+    matar: v('participio', null, null, 'morto (ou matado)')
   }
   // Mismo patrón que «odiar» (los verbos «MARIO»): mediar → medeio, medeia, medeiam.
   ;['mediar', 'ansiar', 'remediar', 'incendiar', 'intermediar'].forEach(function (verb) {
@@ -178,9 +178,9 @@
 
   var LABELS = {
     irregular: { short: '⚡ irregular', long: 'Verbo irregular' },
-    alternancia: { short: '⚡ cambia la vocal', long: 'Verbo irregular: cambia la raíz' },
-    participio: { short: '⚡ participio irregular', long: 'Regular, salvo el participio' },
-    leve: { short: '⚡ irregular leve', long: 'Irregularidad leve: la 3.ª persona pierde la -e (ele produz)' }
+    alternancia: { short: '⚡ muda a vogal', long: 'Verbo irregular: muda o radical' },
+    participio: { short: '⚡ particípio irregular', long: 'Regular, exceto o particípio' },
+    leve: { short: '⚡ irregular leve', long: 'Irregularidade leve: a 3ª pessoa perde o -e (ele produz)' }
   }
 
   /** Resumen corto de las formas, para avisos: «eu faço, ele fez, feito». */
@@ -189,7 +189,7 @@
     var parts = []
     if (inf.p) parts.push('eu ' + inf.p[0], 'ele ' + inf.p[1])
     if (inf.pp) parts.push('eu ' + inf.pp[0])
-    if (inf.pt) parts.push('participio: ' + inf.pt)
+    if (inf.pt) parts.push('particípio: ' + inf.pt)
     return parts.join(' · ')
   }
 

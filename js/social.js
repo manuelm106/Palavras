@@ -133,7 +133,7 @@ function loadProfile (uid) {
   const { fs, db } = cloud
   const p = fs.getDoc(fs.doc(db, 'profiles', uid))
     .then((snap) => {
-      const data = snap.exists() ? snap.data() : { name: 'Usuario', avatar: null }
+      const data = snap.exists() ? snap.data() : { name: 'Usuário', avatar: null }
       profiles.set(uid, data)
       renderAll()
       return data
@@ -415,7 +415,7 @@ async function createPost (data, what) {
   const me = profileOf(user.uid)
   const post = Object.assign({
     owner: user.uid,
-    ownerName: (me && me.name) || user.displayName || 'Usuario',
+    ownerName: (me && me.name) || user.displayName || 'Usuário',
     createdAt: Date.now(),
     audience: friends,
     likes: {}

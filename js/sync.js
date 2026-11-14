@@ -31,7 +31,7 @@ function clean (w) {
 
 if (config && app) init().catch((err) => {
   console.error(err)
-  setStatus('No se pudo cargar la sincronización.')
+  setStatus('Não foi possível carregar a sincronização.')
 })
 
 async function init () {
@@ -69,13 +69,13 @@ async function init () {
         await auth.signInWithRedirect(a, provider)
       } else if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
         console.error(err)
-        app.toast('No se pudo iniciar sesión: ' + (err.code || err.message), 'info')
+        app.toast('Não foi possível entrar: ' + (err.code || err.message), 'info')
       }
     }
   })
 
   $('#signout').addEventListener('click', async () => {
-    if (!confirm('¿Cerrar sesión? Tu lista sigue guardada en tu cuenta, pero se quitará de este dispositivo.')) return
+    if (!confirm('Sair? Sua lista continua salva na sua conta, mas será removida deste aparelho.')) return
     await flush()
     await auth.signOut(a)
     app.clearWords()
@@ -105,7 +105,7 @@ async function init () {
     const bytes = new Blob([JSON.stringify(toMap(words))]).size
     if (bytes > MAX_DOC_BYTES && !sizeWarned) {
       sizeWarned = true
-      app.toast('Tu lista es muy grande para sincronizarse completa (máx. ~1 MB). Exporta una copia y borra palabras o ejemplos que no uses.', 'info')
+      app.toast('Sua lista é grande demais para sincronizar inteira (máx. ~1 MB). Exporte uma cópia e apague palavras ou exemplos que não usa.', 'info')
     }
     return bytes <= MAX_DOC_BYTES * 1.1
   }
@@ -118,7 +118,7 @@ async function init () {
     const words = app.getWords()
     const { sets, deletes, current } = diff(words)
     if (!sets.length && !deletes.length) return
-    if (!checkSize(words)) { setStatus('Lista demasiado grande para sincronizar.'); return }
+    if (!checkSize(words)) { setStatus('Lista grande demais para sincronizar.'); return }
 
     const previous = synced
     synced = current
@@ -139,8 +139,8 @@ async function init () {
       console.error(err)
       synced = previous // se reintenta en el próximo cambio
       setStatus(err.code === 'permission-denied'
-        ? 'Sin permiso para guardar: actualiza las reglas de Firestore.'
-        : 'Error al sincronizar (' + (err.code || 'desconocido') + ').')
+        ? 'Sem permissão para salvar: atualize as regras do Firestore.'
+        : 'Erro ao sincronizar (' + (err.code || 'desconhecido') + ').')
     }
   }
 
@@ -149,7 +149,7 @@ async function init () {
       if (!uid || !ready) return
       clearTimeout(timer)
       timer = setTimeout(flush, PUSH_DELAY_MS)
-      setStatus('Cambios pendientes…')
+      setStatus('Alterações pendentes…')
     }
   }
 
@@ -207,7 +207,7 @@ async function init () {
     app.replaceWords(remote.concat(extra))
     if (extra.length) {
       await flush()
-      app.toast(`Se agregaron ${extra.length} palabra(s) de este dispositivo a tu cuenta.`, 'ok')
+      app.toast(`${extra.length} palavra(s) deste aparelho foram adicionadas à sua conta.`, 'ok')
     } else {
       setStatus('Sincronizado ✔')
     }
@@ -243,28 +243,28 @@ async function init () {
     e.target.value = ''
     if (!file) return
     try {
-      setStatus('Procesando la foto…')
+      setStatus('Processando a foto…')
       const dataUrl = await resizeImage(file, 160)
       await saveProfile({ type: 'photo', value: dataUrl })
     } catch (err) {
       console.error(err)
-      app.toast('No se pudo usar esa imagen. Prueba con otra foto (JPG o PNG).', 'info')
+      app.toast('Não foi possível usar essa imagem. Tente outra foto (JPG ou PNG).', 'info')
       setStatus('')
     }
   })
 
   async function saveProfile (p) {
-    if (!uid || !ready) { app.toast('Espera a que termine de cargar tu lista.', 'info'); return }
+    if (!uid || !ready) { app.toast('Espere sua lista terminar de carregar.', 'info'); return }
     const previous = profile
     setProfile(p) // se muestra enseguida
     toggleMenu(false)
     try {
       await fs.updateDoc(ref, { profile: p })
-      setStatus('Foto actualizada ✔')
+      setStatus('Foto atualizada ✔')
     } catch (err) {
       console.error(err)
       setProfile(previous)
-      app.toast('No se pudo guardar la foto (' + (err.code || 'error') + ').', 'info')
+      app.toast('Não foi possível salvar a foto (' + (err.code || 'erro') + ').', 'info')
     }
   }
 
@@ -278,7 +278,7 @@ async function init () {
     if (profile && (profile.type === 'photo' || profile.type === 'emoji') && profile.value) avatar = { type: profile.type, value: profile.value }
     else avatar = user.photoURL ? { type: 'url', value: user.photoURL } : null
     const joined = Date.parse((user.metadata && user.metadata.creationTime) || '') || null
-    const payload = { name: user.displayName || (user.email || '').split('@')[0] || 'Usuario', avatar, joinedAt: joined, updatedAt: Date.now() }
+    const payload = { name: user.displayName || (user.email || '').split('@')[0] || 'Usuário', avatar, joinedAt: joined, updatedAt: Date.now() }
     const email = (user.email || '').trim().toLowerCase()
     const key = JSON.stringify({ uid: user.uid, name: payload.name, avatar, email, joined })
     let cached = null
@@ -352,7 +352,7 @@ async function init () {
     window.dispatchEvent(new CustomEvent('palavras-user', { detail: user }))
     if (!user) return
 
-    setStatus('Cargando tu lista…')
+    setStatus('Carregando sua lista…')
     const userId = user.uid
     let loading = false
     unsubscribe = fs.onSnapshot(ref, (snap) => {
@@ -385,8 +385,8 @@ async function init () {
   function onError (err) {
     console.error(err)
     setStatus(err.code === 'permission-denied'
-      ? 'Sin permiso para leer la lista: actualiza las reglas de Firestore.'
-      : 'Error de conexión con la nube.')
+      ? 'Sem permissão para ler a lista: atualize as regras do Firestore.'
+      : 'Erro de conexão com a nuvem.')
   }
 }
 
@@ -400,7 +400,7 @@ function renderUser (user) {
   $('#signed-in').hidden = !user
   $('#avatar-menu').hidden = true
   if (user) {
-    $('#user-name').textContent = user.displayName || user.email || 'Tu cuenta'
+    $('#user-name').textContent = user.displayName || user.email || 'Sua conta'
     // Muestra la última foto conocida mientras llega la de la nube.
     let cached = null
     try { cached = JSON.parse(localStorage.getItem(PROFILE_CACHE) || 'null') } catch (e) {}

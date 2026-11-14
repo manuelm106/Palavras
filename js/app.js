@@ -96,7 +96,7 @@
   function speak (text) {
     var synth = window.speechSynthesis
     if (!synth || !window.SpeechSynthesisUtterance) {
-      toast('Tu navegador no permite reproducir audio de texto.', 'info')
+      toast('Seu navegador não permite reproduzir áudio de texto.', 'info')
       return
     }
     var u = new SpeechSynthesisUtterance(text)
@@ -142,7 +142,7 @@
     hint.hidden = false
     hint.innerHTML = ''
     hint.appendChild(el('span', { class: 'badge cat-' + r.category, text: CATS[r.category].label }))
-    hint.appendChild(document.createTextNode(' ' + capitalize(r.reason) + ' · confianza ' + Math.round(r.confidence * 100) + '%'))
+    hint.appendChild(document.createTextNode(' ' + capitalize(r.reason) + ' · confiança ' + Math.round(r.confidence * 100) + '%'))
   }
 
   function capitalize (s) { return s.charAt(0).toUpperCase() + s.slice(1) }
@@ -157,7 +157,7 @@
     var key = Classifier.normalize(word)
     var existing = state.words.filter(function (w) { return Classifier.normalize(w.word) === key })[0]
     if (existing) {
-      toast('«' + existing.word + '» ya está en tu lista.', 'info')
+      toast('«' + existing.word + '» já está na sua lista.', 'info')
       highlight(existing.id)
       return
     }
@@ -180,7 +180,7 @@
     updateSuggestion()
     render()
     highlight(entry.id)
-    toast('Agregada «' + entry.word + '» como ' + CATS[category].label.toLowerCase() + '.', 'ok')
+    toast('«' + entry.word + '» adicionada como ' + CATS[category].label.toLowerCase() + '.', 'ok')
     wordInput.focus()
     if (state.settings.enabled && !state.nextAt) scheduleNext()
   })
@@ -203,7 +203,7 @@
     if (counts.genero || filter === 'genero') keys.push('genero')
     if (counts.irregular || filter === 'irregular') keys.push('irregular')
     keys.forEach(function (k) {
-      var label = k === 'todas' ? 'Todas' : k === 'genero' ? '⚠️ Género distinto' : k === 'irregular' ? '⚡ Irregulares' : CATS[k].label
+      var label = k === 'todas' ? 'Todas' : k === 'genero' ? '⚠️ Gênero diferente' : k === 'irregular' ? '⚡ Irregulares' : CATS[k].label
       box.appendChild(el('button', {
         type: 'button',
         class: 'chip' + (filter === k ? ' active' : '') + (k !== 'todas' ? ' cat-' + k : ''),
@@ -234,7 +234,7 @@
   function exampleContent (w, item, loading) {
     if (!item) {
       return [el('p', { class: 'example-empty' }, [
-        loading ? 'Buscando frases reales con «' + w.word + '»…' : 'Todavía no hay un ejemplo para «' + w.word + '».'
+        loading ? 'Buscando frases reais com «' + w.word + '»…' : 'Ainda não há um exemplo para «' + w.word + '».'
       ])]
     }
     var tag = item.source === 'tatoeba'
@@ -242,7 +242,7 @@
       : item.source === 'wiktionary'
         ? el('a', { class: 'example-source', href: 'https://en.wiktionary.org/wiki/' + encodeURIComponent(w.word.replace(/ /g, '_')) + '#Portuguese', target: '_blank', rel: 'noopener' }, ['Frase real · Wiktionary'])
         : item.source === 'own'
-        ? el('span', { class: 'example-source', text: 'Tu ejemplo' })
+        ? el('span', { class: 'example-source', text: 'Seu exemplo' })
         : item.source === 'template'
           ? el('span', { class: 'example-source', text: 'Frase modelo' })
           : null
@@ -254,7 +254,7 @@
   }
 
   // ---------- Género de los sustantivos ----------
-  var GENDER_LABEL = { m: 'masculino', f: 'femenino', mf: 'masc. o fem.' }
+  var GENDER_LABEL = { m: 'masculino', f: 'feminino', mf: 'masc. ou fem.' }
 
   // Lo que eligió el usuario manda; si no, se deduce de la palabra.
   function nounGender (w) {
@@ -272,11 +272,11 @@
     var badge = el('button', {
       type: 'button',
       class: 'gender-badge g-' + info.g + (info.sure ? '' : ' unsure'),
-      title: (info.sure ? '' : 'No es seguro: revísalo. ') + 'Toca para elegir el género.',
-      'aria-label': 'Género: ' + GENDER_LABEL[info.g] + (info.sure ? '' : ', sin confirmar') + '. Tocar para elegir.',
+      title: (info.sure ? '' : 'Não é certo: confira. ') + 'Toque para escolher o gênero.',
+      'aria-label': 'Gênero: ' + GENDER_LABEL[info.g] + (info.sure ? '' : ', não confirmado') + '. Toque para escolher.',
       'aria-expanded': 'false',
       onclick: function () {
-        var opts = el('span', { class: 'gender-options', role: 'group', 'aria-label': 'Elegir género' },
+        var opts = el('span', { class: 'gender-options', role: 'group', 'aria-label': 'Escolher gênero' },
           ['m', 'f', 'mf'].map(function (g) {
             return el('button', {
               type: 'button',
@@ -318,9 +318,9 @@
     if (inf.p) rows.push(['Presente', 'eu ' + inf.p[0] + ' · ele/você ' + inf.p[1] + ' · eles/vocês ' + inf.p[2]])
     if (inf.pp) rows.push(['Pretérito', 'eu ' + inf.pp[0] + ' · ele/você ' + inf.pp[1]])
     if (inf.f) rows.push(['Futuro', 'eu ' + inf.f])
-    if (inf.pt) rows.push(['Participio', inf.pt])
+    if (inf.pt) rows.push(['Particípio', inf.pt])
     return el('details', { class: 'verb-forms' }, [
-      el('summary', { text: 'Ver formas irregulares' + (inf.base ? ' (se conjuga como «' + inf.base + '»)' : '') }),
+      el('summary', { text: 'Ver formas irregulares' + (inf.base ? ' (conjuga-se como «' + inf.base + '»)' : '') }),
       el('table', {}, [el('tbody', {}, rows.map(function (r) {
         return el('tr', {}, [el('th', { scope: 'row', text: r[0] }), el('td', { lang: 'pt-BR', text: r[1] })])
       }))])
@@ -343,7 +343,7 @@
     var esLabel = c.es ? GENDER_LABEL[c.es.g] : ''
     if (c.status === 'different') {
       return el('div', { class: 'gender-alert', role: 'note' }, [
-        el('div', { class: 'gender-alert-title', text: '⚠️ ¡OJO! Género distinto al español' }),
+        el('div', { class: 'gender-alert-title', text: '⚠️ ATENÇÃO! Gênero diferente do espanhol' }),
         el('div', { class: 'gender-alert-pair' }, [
           el('strong', { lang: 'pt-BR', text: c.pt.article + ' ' + w.word }),
           ' (' + GENDER_LABEL[c.pt.g] + ')  ≠  ',
@@ -353,18 +353,18 @@
       ])
     }
     if (c.status === 'check') {
-      return el('p', { class: 'gender-check' }, ['¿Género distinto? En español es «' + c.es.article + ' ' + c.es.word + '» (' + esLabel + '). Confirma el género en portugués tocando la etiqueta.'])
+      return el('p', { class: 'gender-check' }, ['Gênero diferente? Em espanhol é «' + c.es.article + ' ' + c.es.word + '» (' + esLabel + '). Confirme o gênero em português tocando na etiqueta.'])
     }
     if (c.status === 'same') {
-      return el('p', { class: 'gender-same' }, ['✓ Mismo género que en español: ' + c.es.article + ' ' + c.es.word])
+      return el('p', { class: 'gender-same' }, ['✓ Mesmo gênero que em espanhol: ' + c.es.article + ' ' + c.es.word])
     }
     return el('p', { class: 'gender-check' }, [w.meaning
-      ? 'Para comparar con el español, escribe el significado con artículo (ej.: «la leche»).'
-      : 'Agrega el significado para comparar el género con el español.'])
+      ? 'Para comparar com o espanhol, escreva o significado com artigo (ex.: «la leche»).'
+      : 'Adicione o significado para comparar o gênero com o espanhol.'])
   }
 
   function editMeaning (w) {
-    var value = prompt('Significado de «' + w.word + '»' + (w.category === 'sustantivo' ? ' (con artículo, ej.: «la leche», para comparar el género)' : '') + ':', w.meaning || '')
+    var value = prompt('Significado de «' + w.word + '»' + (w.category === 'sustantivo' ? ' (com artigo, ex.: «la leche», para comparar o gênero)' : '') + ':', w.meaning || '')
     if (value === null) return
     w.meaning = value.trim()
     save()
@@ -379,9 +379,9 @@
     var loading = false
     var exampleBox = el('div', { class: 'example-box' })
     var note = el('span', { class: 'example-note muted small', 'aria-live': 'polite' })
-    var otherBtn = el('button', { type: 'button', class: 'link', onclick: nextExample }, ['Otro ejemplo'])
-    var speakBtn = el('button', { type: 'button', class: 'link', onclick: function () { if (current) speak(current.pt) } }, ['Escuchar frase'])
-    var writeBtn = el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['✎ Escribir mi ejemplo'])
+    var otherBtn = el('button', { type: 'button', class: 'link', onclick: nextExample }, ['Outro exemplo'])
+    var speakBtn = el('button', { type: 'button', class: 'link', onclick: function () { if (current) speak(current.pt) } }, ['Ouvir frase'])
+    var writeBtn = el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['✎ Escrever meu exemplo'])
     function show (item) {
       current = item
       exampleBox.replaceChildren.apply(exampleBox, exampleContent(w, item, loading).filter(Boolean))
@@ -397,7 +397,7 @@
       if (next) { show(next); return }
       if (!window.Sentences) { noMore(); return }
       otherBtn.disabled = true
-      note.textContent = 'Buscando más frases…'
+      note.textContent = 'Buscando mais frases…'
       window.Sentences.more(w.word).then(function (res) {
         otherBtn.disabled = false
         note.textContent = ''
@@ -412,9 +412,9 @@
       exhausted[w.id] = true
       otherBtn.hidden = true
       var text = reached === false
-        ? 'No pude conectarme ahora a los servicios de frases. '
-        : 'Es el único ejemplo que encontré para «' + w.word + '». '
-      note.replaceChildren(text, el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['Escribe uno tuyo']))
+        ? 'Não consegui me conectar agora aos serviços de frases. '
+        : 'É o único exemplo que encontrei para «' + w.word + '». '
+      note.replaceChildren(text, el('button', { type: 'button', class: 'link', onclick: openOwnExample }, ['Escreva um seu']))
     }
     function openOwnExample () {
       var card = document.getElementById('w-' + w.id)
@@ -437,7 +437,7 @@
 
     var select = el('select', {
       class: 'cat-select',
-      'aria-label': 'Categoría de ' + w.word,
+      'aria-label': 'Categoria de ' + w.word,
       onchange: function (e) {
         w.category = e.target.value
         save()
@@ -454,14 +454,14 @@
       return el('li', {}, [
         ex,
         el('button', {
-          type: 'button', class: 'link danger', title: 'Borrar este ejemplo', 'aria-label': 'Borrar ejemplo',
+          type: 'button', class: 'link danger', title: 'Apagar este exemplo', 'aria-label': 'Apagar exemplo',
           onclick: function () { w.examples.splice(i, 1); save(); render(); highlight(w.id) }
         }, ['×'])
       ])
     }))
 
     var details = el('details', { class: 'more' }, [
-      el('summary', { text: 'Mis ejemplos (' + (w.examples || []).length + ')' }),
+      el('summary', { text: 'Meus exemplos (' + (w.examples || []).length + ')' }),
       ownExamples,
       el('form', {
         class: 'add-example',
@@ -476,8 +476,8 @@
           highlight(w.id, true)
         }
       }, [
-        el('input', { type: 'text', placeholder: 'Escribe tu propia frase con «' + w.word + '»', 'aria-label': 'Nuevo ejemplo' }),
-        el('button', { type: 'submit', class: 'btn small', text: 'Agregar' })
+        el('input', { type: 'text', placeholder: 'Escreva sua própria frase com «' + w.word + '»', 'aria-label': 'Novo exemplo' }),
+        el('button', { type: 'submit', class: 'btn small', text: 'Adicionar' })
       ])
     ])
 
@@ -499,24 +499,24 @@
         ]),
         el('div', { class: 'card-actions' }, [
           select,
-          el('button', { type: 'button', class: 'icon-btn', title: 'Escuchar', 'aria-label': 'Escuchar ' + w.word, onclick: function () { speak(w.word) } }, ['🔊']),
+          el('button', { type: 'button', class: 'icon-btn', title: 'Ouvir', 'aria-label': 'Ouvir ' + w.word, onclick: function () { speak(w.word) } }, ['🔊']),
           el('button', {
             type: 'button',
             class: 'icon-btn share-btn',
-            title: 'Compartir con mis amigos',
-            'aria-label': 'Compartir ' + w.word + ' con mis amigos',
+            title: 'Compartilhar com meus amigos',
+            'aria-label': 'Compartilhar ' + w.word + ' com meus amigos',
             onclick: function () {
               if (window.PalavrasSocial) window.PalavrasSocial.shareWord(w, current ? current.pt : '')
-              else toast('Inicia sesión con Google para compartir con tus amigos.', 'info')
+              else toast('Entre com o Google para compartilhar com seus amigos.', 'info')
             }
           }, ['📤']),
           el('button', {
             type: 'button',
             class: 'icon-btn danger',
-            title: 'Borrar',
-            'aria-label': 'Borrar ' + w.word,
+            title: 'Apagar',
+            'aria-label': 'Apagar ' + w.word,
             onclick: function () {
-              if (!confirm('¿Borrar «' + w.word + '» de la lista?')) return
+              if (!confirm('Apagar «' + w.word + '» da lista?')) return
               state.words = state.words.filter(function (x) { return x.id !== w.id })
               save()
               render()
@@ -594,11 +594,11 @@
     if (!w) return
     var item = Examples.randomItem(w)
     // Sin ejemplo, la notificación invita a armar una frase.
-    var example = item ? item.pt : '¿Cómo usarías «' + w.word + '» en una frase?'
+    var example = item ? item.pt : 'Como você usaria «' + w.word + '» numa frase?'
     var translation = item && item.es ? item.es : ''
     var gc = genderCompare(w)
     if (gc && gc.status === 'different') {
-      translation = (translation ? translation + '\n' : '') + '⚠️ Ojo: ' + gc.pt.article + ' ' + w.word + ' (' + GENDER_LABEL[gc.pt.g] + ') ≠ ' + gc.es.article + ' ' + gc.es.word + ' (' + GENDER_LABEL[gc.es.g] + ')'
+      translation = (translation ? translation + '\n' : '') + '⚠️ Atenção: ' + gc.pt.article + ' ' + w.word + ' (' + GENDER_LABEL[gc.pt.g] + ') ≠ ' + gc.es.article + ' ' + gc.es.word + ' (' + GENDER_LABEL[gc.es.g] + ')'
     }
     state.shown[w.id] = (state.shown[w.id] || 0) + 1
     state.lastWordId = w.id
@@ -665,7 +665,7 @@
   maxInput.addEventListener('change', onRangeChange)
 
   $('#notif-test').addEventListener('click', function () {
-    if (!state.words.length) { toast('Primero agrega alguna palabra a la lista.', 'info'); return }
+    if (!state.words.length) { toast('Primeiro adicione alguma palavra à lista.', 'info'); return }
     if (notificationsSupported() && Notification.permission === 'default') Notification.requestPermission()
     fire()
   })
@@ -676,25 +676,25 @@
     maxInput.value = state.settings.maxMinutes
     var status = $('#notif-permission')
     if (!notificationsSupported()) {
-      status.textContent = 'Tu navegador no soporta notificaciones del sistema: los avisos se mostrarán dentro de la página.'
+      status.textContent = 'Seu navegador não suporta notificações do sistema: os avisos aparecerão dentro da página.'
     } else if (Notification.permission === 'denied') {
-      status.textContent = 'Bloqueaste las notificaciones para este sitio. Se mostrarán solo dentro de la página (puedes habilitarlas desde la configuración del navegador).'
+      status.textContent = 'Você bloqueou as notificações para este site. Elas aparecerão só dentro da página (você pode ativá-las nas configurações do navegador).'
     } else if (Notification.permission === 'default') {
-      status.textContent = 'Al activar, el navegador te pedirá permiso para mostrar notificaciones.'
+      status.textContent = 'Ao ativar, o navegador vai pedir permissão para mostrar notificações.'
     } else {
-      status.textContent = 'Notificaciones del sistema habilitadas ✔'
+      status.textContent = 'Notificações do sistema ativadas ✔'
     }
     renderCountdown()
   }
 
   function renderCountdown () {
     var box = $('#notif-next')
-    if (!state.settings.enabled) { box.textContent = 'Notificaciones desactivadas.'; return }
-    if (!state.words.length) { box.textContent = 'Agrega palabras para empezar a recibir ejemplos.'; return }
+    if (!state.settings.enabled) { box.textContent = 'Notificações desativadas.'; return }
+    if (!state.words.length) { box.textContent = 'Adicione palavras para começar a receber exemplos.'; return }
     if (!state.nextAt) { box.textContent = ''; return }
     var s = Math.max(0, Math.round((state.nextAt - Date.now()) / 1000))
     var m = Math.floor(s / 60)
-    box.textContent = 'Próximo ejemplo en ' + (m ? m + ' min ' : '') + (s % 60) + ' s (aprox., es aleatorio).'
+    box.textContent = 'Próximo exemplo em ' + (m ? m + ' min ' : '') + (s % 60) + ' s (aprox., é aleatório).'
   }
 
   // ---------- Toasts ----------
@@ -707,9 +707,9 @@
         el('div', { class: 'toast-body', lang: 'pt-BR', text: note.body }),
         note.es ? el('div', { class: 'toast-es', text: note.es }) : null,
         el('div', { class: 'toast-actions' }, [
-          el('button', { type: 'button', class: 'link', onclick: function () { speak(note.speak || note.body) } }, ['🔊 Escuchar']),
-          el('button', { type: 'button', class: 'link', onclick: function () { highlight(note.id); dismiss() } }, ['Ver en la lista']),
-          el('button', { type: 'button', class: 'link', onclick: dismiss }, ['Cerrar'])
+          el('button', { type: 'button', class: 'link', onclick: function () { speak(note.speak || note.body) } }, ['🔊 Ouvir']),
+          el('button', { type: 'button', class: 'link', onclick: function () { highlight(note.id); dismiss() } }, ['Ver na lista']),
+          el('button', { type: 'button', class: 'link', onclick: dismiss }, ['Fechar'])
         ])
       ])
     } else {
@@ -734,11 +734,11 @@
     var view = $('#print-view')
     view.innerHTML = ''
     var filtered = filter !== 'todas' || search
-    var date = new Date().toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' })
-    view.appendChild(el('h1', { text: 'Palavras · mi vocabulario de portugués' }))
+    var date = new Date().toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' })
+    view.appendChild(el('h1', { text: 'Palavras · meu vocabulário de português' }))
     view.appendChild(el('p', {
       class: 'print-meta',
-      text: date + ' · ' + words.length + (words.length === 1 ? ' palabra' : ' palabras') + (filtered ? ' (lista filtrada)' : '')
+      text: date + ' · ' + words.length + (words.length === 1 ? ' palavra' : ' palavras') + (filtered ? ' (lista filtrada)' : '')
     }))
     Object.keys(CATS).forEach(function (cat) {
       var group = words.filter(function (w) { return w.category === cat })
@@ -766,7 +766,7 @@
       view.appendChild(el('section', { class: 'print-group' }, [
         el('h2', { text: CATS[cat].label + ' (' + group.length + ')' }),
         el('table', {}, [
-          el('thead', {}, [el('tr', {}, [el('th', { text: 'Palabra' }), el('th', { text: 'Significado' }), el('th', { text: 'Ejemplo' })])]),
+          el('thead', {}, [el('tr', {}, [el('th', { text: 'Palavra' }), el('th', { text: 'Significado' }), el('th', { text: 'Exemplo' })])]),
           el('tbody', {}, rows)
         ])
       ]))
@@ -775,7 +775,7 @@
 
   $('#export-pdf').addEventListener('click', function () {
     var words = visibleWords()
-    if (!words.length) { toast('No hay palabras para exportar.', 'info'); return }
+    if (!words.length) { toast('Não há palavras para exportar.', 'info'); return }
     buildPrintView(words)
     var oldTitle = document.title
     document.title = 'palavras-' + new Date().toISOString().slice(0, 10) // nombre sugerido del PDF
@@ -816,9 +816,9 @@
         })
         save()
         render()
-        toast('Importadas ' + added + ' palabras nuevas.', 'ok')
+        toast(added + ' palavras novas importadas.', 'ok')
       } catch (err) {
-        toast('No se pudo leer el archivo. Debe ser un JSON exportado desde esta app.', 'info')
+        toast('Não foi possível ler o arquivo. Ele precisa ser um JSON exportado deste app.', 'info')
       }
       e.target.value = ''
     }

@@ -70,10 +70,10 @@
       return
     }
     if (!items.length) {
-      box.appendChild(document.createTextNode('Sin sugerencias de significado.'))
+      box.appendChild(document.createTextNode('Sem sugestões de significado.'))
       return
     }
-    box.appendChild(document.createTextNode('¿Significa…? '))
+    box.appendChild(document.createTextNode('Significa…? '))
     items.forEach(function (t) {
       var b = document.createElement('button')
       b.type = 'button'
@@ -87,7 +87,7 @@
       box.appendChild(b)
     })
     // Si el campo está vacío, la primera sugerencia aparece como pista.
-    meaningInput.placeholder = items[0] ? 'Sugerido: ' + items[0] : 'ej.: nostalgia, extrañar'
+    meaningInput.placeholder = items[0] ? 'Sugerido: ' + items[0] : 'ex.: nostalgia, extrañar'
   }
 
   // ---------- Traductores ----------
@@ -166,8 +166,8 @@
           render(query, items)
         } else if (failed >= 2) {
           render(query, [], quota
-            ? 'Los traductores gratuitos no responden ahora (se agotó el límite diario). Puedes escribir el significado a mano.'
-            : 'No se pudo conectar con los traductores. Revisa tu conexión o escribe el significado a mano.')
+            ? 'Os tradutores gratuitos não estão respondendo agora (o limite diário acabou). Você pode escrever o significado à mão.'
+            : 'Não foi possível conectar com os tradutores. Confira sua conexão ou escreva o significado à mão.')
         } else {
           render(query, [])
         }
@@ -178,7 +178,7 @@
     clearTimeout(timer)
     var query = norm(wordInput.value)
     lastQuery = query
-    meaningInput.placeholder = 'ej.: nostalgia, extrañar'
+    meaningInput.placeholder = 'ex.: nostalgia, extrañar'
     if (query.length < 2) { render('', []); return }
     timer = setTimeout(function () { lookup(query) }, DEBOUNCE_MS)
   })
@@ -186,7 +186,7 @@
   // Al enviar el formulario (que se limpia), se ocultan las sugerencias.
   document.getElementById('word-form').addEventListener('submit', function () {
     setTimeout(function () {
-      if (!wordInput.value.trim()) { lastQuery = ''; render('', []); meaningInput.placeholder = 'ej.: nostalgia, extrañar' }
+      if (!wordInput.value.trim()) { lastQuery = ''; render('', []); meaningInput.placeholder = 'ex.: nostalgia, extrañar' }
     }, 0)
   })
 })()

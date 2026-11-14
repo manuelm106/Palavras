@@ -103,11 +103,11 @@ function render () {
   const list = $('lb-list')
   const note = $('lb-note')
   if (!cloud || !user) {
-    note.textContent = 'Inicia sesión con Google y agrega amigos en 👥 Amigos para competir en el ranking.'
+    note.textContent = 'Entre com o Google e adicione amigos em 👥 Amigos para competir no ranking.'
     list.replaceChildren()
     return
   }
-  if (!rows.length) { note.textContent = loading ? 'Cargando ranking…' : ''; list.replaceChildren(); return }
+  if (!rows.length) { note.textContent = loading ? 'Carregando ranking…' : ''; list.replaceChildren(); return }
 
   const scored = rows.map((r) => {
     const s = scoreOf(r.data)
@@ -116,8 +116,8 @@ function render () {
   }).sort((a, b) => b.ok - a.ok || (b.acc || 0) - (a.acc || 0) || (a.uid === user.uid ? -1 : 1))
 
   note.textContent = rows.length === 1
-    ? 'Todavía no tienes amigos: agrégalos en 👥 Amigos para competir.'
-    : (mode === 'week' && scored.every((r) => !r.total) ? 'Nadie jugó esta semana todavía. ¡Empieza tú!' : '')
+    ? 'Você ainda não tem amigos: adicione-os em 👥 Amigos para competir.'
+    : (mode === 'week' && scored.every((r) => !r.total) ? 'Ninguém jogou nesta semana ainda. Comece você!' : '')
 
   const medals = ['🥇', '🥈', '🥉']
   let place = 0
@@ -133,8 +133,8 @@ function render () {
       el('span', { class: 'lb-name' }, [
         isFriend
           ? el('button', { type: 'button', class: 'link lb-link', text: r.data.name || 'Amigo', onclick: () => window.PalavrasSocial.openProfile(r.uid) })
-          : el('strong', { text: me ? 'Tú' : (r.data.name || '…') }),
-        el('span', { class: 'muted small lb-detail', text: (r.acc === null ? 'sin jugar' : r.acc + '% de aciertos') + (r.best ? ' · racha ' + r.best : '') })
+          : el('strong', { text: me ? 'Você' : (r.data.name || '…') }),
+        el('span', { class: 'muted small lb-detail', text: (r.acc === null ? 'sem jogar' : r.acc + '% de acertos') + (r.best ? ' · sequência ' + r.best : '') })
       ]),
       el('span', { class: 'lb-points', text: r.ok + (r.ok === 1 ? ' pt' : ' pts') })
     ])

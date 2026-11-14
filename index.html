@@ -1,27 +1,27 @@
 <!doctype html>
-<html lang="es">
+<html lang="pt-BR">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Palavras · vocabulario de portugués</title>
-  <meta name="description" content="Guarda palabras en portugués, clasifícalas y recibe ejemplos de uso al azar.">
+  <title>Palavras · vocabulário de português</title>
+  <meta name="description" content="Guarde palavras em português, classifique-as e receba exemplos de uso aleatórios.">
   <meta name="theme-color" content="#0b7a53">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=42">
+  <link rel="stylesheet" href="styles.css?v=44">
 </head>
 <body>
   <header class="site-header">
     <div class="wrap">
       <div class="title-row">
         <h1><img src="icon.svg" alt="" width="32" height="32"> Palavras</h1>
-        <button id="help-btn" type="button" class="help-btn" aria-haspopup="dialog" aria-controls="help-dialog">❓ Ayuda <span id="help-badge" class="badge-count" hidden></span></button>
+        <button id="help-btn" type="button" class="help-btn" aria-haspopup="dialog" aria-controls="help-dialog">❓ Ajuda <span id="help-badge" class="badge-count" hidden></span></button>
       </div>
-      <p class="tagline">Tu vocabulario de portugués, clasificado y con ejemplos que te llegan cuando menos lo esperas.</p>
+      <p class="tagline">Seu vocabulário de português, classificado e com exemplos que chegam quando você menos espera.</p>
       <div id="account" class="account" hidden>
-        <button id="signin" type="button" class="btn">Iniciar sesión con Google para sincronizar</button>
+        <button id="signin" type="button" class="btn">Entrar com o Google para sincronizar</button>
         <div id="signed-in" class="signed-in" hidden>
-          <button id="avatar-btn" type="button" class="avatar-btn" title="Cambiar foto de perfil" aria-label="Cambiar foto de perfil" aria-expanded="false" aria-controls="avatar-menu">
+          <button id="avatar-btn" type="button" class="avatar-btn" title="Mudar foto de perfil" aria-label="Mudar foto de perfil" aria-expanded="false" aria-controls="avatar-menu">
             <img id="avatar" alt="" width="44" height="44" referrerpolicy="no-referrer" hidden>
             <span id="avatar-emoji" class="avatar-emoji" aria-hidden="true" hidden></span>
             <span class="avatar-edit" aria-hidden="true">✎</span>
@@ -30,34 +30,34 @@
             <div class="user-line">
               <strong id="user-name"></strong>
               <span id="sync-status" class="muted small" aria-live="polite"></span>
-              <button id="signout" type="button" class="link">Cerrar sesión</button>
+              <button id="signout" type="button" class="link">Sair</button>
             </div>
             <div id="avatar-menu" class="avatar-menu" hidden>
               <div class="avatar-menu-head">
-                <strong>Tu foto de perfil</strong>
-                <button id="avatar-close" type="button" class="link" aria-label="Cerrar">✕</button>
+                <strong>Sua foto de perfil</strong>
+                <button id="avatar-close" type="button" class="link" aria-label="Fechar">✕</button>
               </div>
-              <label class="btn small avatar-upload">📷 Subir una foto<input id="avatar-file" type="file" accept="image/*" hidden></label>
-              <p class="muted small">O elige un emoji:</p>
+              <label class="btn small avatar-upload">📷 Enviar uma foto<input id="avatar-file" type="file" accept="image/*" hidden></label>
+              <p class="muted small">Ou escolha um emoji:</p>
               <div id="avatar-emojis" class="avatar-emojis"></div>
-              <button id="avatar-google" type="button" class="link">Usar la foto de mi cuenta de Google</button>
+              <button id="avatar-google" type="button" class="link">Usar a foto da minha conta do Google</button>
             </div>
             <div id="user-quote" class="user-quote" hidden>
               <span id="quote-kind" class="quote-kind"></span>
               <span id="quote-pt" class="quote-pt" lang="pt-BR"></span>
               <span id="quote-es" class="quote-es"></span>
               <span class="quote-actions">
-                <button id="quote-speak" type="button" class="link" title="Escuchar la frase">🔊 Escuchar</button>
-                <button id="quote-next" type="button" class="link" title="Mostrar otra frase">↻ Otra</button>
-                <button id="quote-share" type="button" class="link" title="Compartir con mis amigos">📤 Compartir</button>
+                <button id="quote-speak" type="button" class="link" title="Ouvir a frase">🔊 Ouvir</button>
+                <button id="quote-next" type="button" class="link" title="Mostrar outra frase">↻ Outra</button>
+                <button id="quote-share" type="button" class="link" title="Compartilhar com meus amigos">📤 Compartilhar</button>
               </span>
             </div>
           </div>
         </div>
       </div>
-      <nav class="tabs" role="tablist" aria-label="Secciones">
-        <button type="button" role="tab" class="tab" id="tab-words" aria-controls="view-words" aria-selected="true">📚 Mi vocabulario</button>
-        <button type="button" role="tab" class="tab" id="tab-challenge" aria-controls="view-challenge" aria-selected="false">🎯 Desafío</button>
+      <nav class="tabs" role="tablist" aria-label="Seções">
+        <button type="button" role="tab" class="tab" id="tab-words" aria-controls="view-words" aria-selected="true">📚 Meu vocabulário</button>
+        <button type="button" role="tab" class="tab" id="tab-challenge" aria-controls="view-challenge" aria-selected="false">🎯 Desafio</button>
         <button type="button" role="tab" class="tab" id="tab-friends" aria-controls="view-friends" aria-selected="false" hidden>👥 Amigos <span id="friends-badge" class="badge-count" hidden></span></button>
       </nav>
     </div>
@@ -65,41 +65,41 @@
 
   <main id="view-words" class="wrap layout" role="tabpanel" aria-labelledby="tab-words">
     <section class="panel" aria-labelledby="add-title">
-      <h2 id="add-title">Agregar palabra</h2>
+      <h2 id="add-title">Adicionar palavra</h2>
       <form id="word-form" autocomplete="off">
-        <label for="word">Palabra o expresión en portugués</label>
-        <input id="word" name="word" type="text" lang="pt-BR" required placeholder="ej.: saudade, falar, no entanto…">
+        <label for="word">Palavra ou expressão em português</label>
+        <input id="word" name="word" type="text" lang="pt-BR" required placeholder="ex.: saudade, falar, no entanto…">
         <p id="suggestion" class="suggestion" aria-live="polite" hidden></p>
 
-        <label for="category">Categoría</label>
+        <label for="category">Categoria</label>
         <select id="category" name="category">
-          <option value="auto">Automática (usar la sugerencia)</option>
-          <option value="sustantivo">Sustantivo</option>
+          <option value="auto">Automática (usar a sugestão)</option>
+          <option value="sustantivo">Substantivo</option>
           <option value="adjetivo">Adjetivo</option>
           <option value="verbo">Verbo</option>
-          <option value="adverbio">Adverbio</option>
-          <option value="conector">Conector</option>
-          <option value="expresion">Expresión</option>
+          <option value="adverbio">Advérbio</option>
+          <option value="conector">Conectivo</option>
+          <option value="expresion">Expressão</option>
         </select>
 
         <label for="meaning">Significado <span class="optional">(opcional)</span></label>
-        <input id="meaning" name="meaning" type="text" placeholder="ej.: nostalgia, extrañar">
+        <input id="meaning" name="meaning" type="text" placeholder="ex.: nostalgia, extrañar">
         <p id="meaning-suggestions" class="suggestion" aria-live="polite" hidden></p>
 
-        <label for="example">Tu propio ejemplo <span class="optional">(opcional)</span></label>
-        <input id="example" name="example" type="text" lang="pt-BR" placeholder="ej.: Estou com saudade de você.">
+        <label for="example">Seu próprio exemplo <span class="optional">(opcional)</span></label>
+        <input id="example" name="example" type="text" lang="pt-BR" placeholder="ex.: Estou com saudade de você.">
 
-        <button type="submit" class="btn primary">Agregar a la lista</button>
+        <button type="submit" class="btn primary">Adicionar à lista</button>
       </form>
 
-      <h2 class="mt">Notificaciones</h2>
+      <h2 class="mt">Notificações</h2>
       <div class="settings">
         <label class="switch">
           <input id="notif-enabled" type="checkbox">
-          <span>Recibir ejemplos al azar</span>
+          <span>Receber exemplos aleatórios</span>
         </label>
         <div class="range">
-          Cada
+          A cada
           <input id="notif-min" type="number" min="1" max="1440" aria-label="Mínimo de minutos">
           a
           <input id="notif-max" type="number" min="1" max="1440" aria-label="Máximo de minutos">
@@ -107,22 +107,22 @@
         </div>
         <p id="notif-next" class="muted" aria-live="polite"></p>
         <p id="notif-permission" class="muted small"></p>
-        <button id="notif-test" type="button" class="btn">Mostrar un ejemplo ahora</button>
-        <p class="muted small">Las notificaciones llegan mientras esta pestaña esté abierta (puede estar en segundo plano).</p>
+        <button id="notif-test" type="button" class="btn">Mostrar um exemplo agora</button>
+        <p class="muted small">As notificações chegam enquanto esta aba estiver aberta (pode estar em segundo plano).</p>
       </div>
     </section>
 
     <section class="panel" aria-labelledby="list-title">
       <div class="list-head">
-        <h2 id="list-title">Mi lista</h2>
-        <input id="search" type="search" placeholder="Buscar…" aria-label="Buscar en la lista">
+        <h2 id="list-title">Minha lista</h2>
+        <input id="search" type="search" placeholder="Buscar…" aria-label="Buscar na lista">
       </div>
-      <div id="filters" class="filters" role="toolbar" aria-label="Filtrar por categoría"></div>
-      <p id="empty" class="empty">Todavía no hay palabras. Agrega la primera con el formulario. 🙂</p>
-      <p id="no-results" class="empty" hidden>No hay palabras que coincidan con el filtro.</p>
+      <div id="filters" class="filters" role="toolbar" aria-label="Filtrar por categoria"></div>
+      <p id="empty" class="empty">Ainda não há palavras. Adicione a primeira com o formulário. 🙂</p>
+      <p id="no-results" class="empty" hidden>Nenhuma palavra corresponde ao filtro.</p>
       <ul id="word-list" class="word-list"></ul>
       <div class="io">
-        <button id="export-pdf" type="button" class="link">Exportar a PDF</button>
+        <button id="export-pdf" type="button" class="link">Exportar para PDF</button>
         <button id="export" type="button" class="link">Exportar lista (JSON)</button>
         <label class="link">Importar lista<input id="import" type="file" accept="application/json,.json" hidden></label>
       </div>
@@ -131,75 +131,75 @@
 
   <main id="view-challenge" class="wrap challenge-layout" role="tabpanel" aria-labelledby="tab-challenge" hidden>
     <section class="panel challenge-panel" aria-labelledby="ch-title">
-      <h2 id="ch-title">Desafío</h2>
-      <div id="ch-empty" class="empty" hidden>Agrega al menos 2 palabras a tu lista para empezar el desafío.</div>
+      <h2 id="ch-title">Desafio</h2>
+      <div id="ch-empty" class="empty" hidden>Adicione pelo menos 2 palavras à sua lista para começar o desafio.</div>
 
       <div id="ch-round" hidden>
         <div class="ch-word-row">
           <strong id="ch-word" class="ch-word" lang="pt-BR"></strong>
-          <button id="ch-speak" type="button" class="icon-btn" title="Escuchar" aria-label="Escuchar la palabra">🔊</button>
+          <button id="ch-speak" type="button" class="icon-btn" title="Ouvir" aria-label="Ouvir a palavra">🔊</button>
         </div>
         <div class="ch-hint">
           <button id="ch-hint-btn" type="button" class="link">Ver significado</button>
           <span id="ch-meaning" class="muted" hidden></span>
         </div>
 
-        <h3 class="ch-step">1. ¿Qué categoría es?</h3>
+        <h3 class="ch-step">1. Qual é a categoria?</h3>
         <div id="ch-cats" class="ch-cats"></div>
         <p id="ch-cat-result" class="ch-result" aria-live="polite" hidden></p>
 
         <div id="ch-step2" hidden>
-          <h3 class="ch-step">2. Escribe una frase usando la palabra</h3>
+          <h3 class="ch-step">2. Escreva uma frase usando a palavra</h3>
           <form id="ch-form" autocomplete="off">
-            <textarea id="ch-sentence" rows="2" lang="pt-BR" placeholder="Escribe tu frase en portugués…" aria-label="Tu frase de ejemplo"></textarea>
-            <label class="check"><input id="ch-save" type="checkbox" checked> Guardar mi frase en la lista si es correcta</label>
-            <button type="submit" class="btn primary">Comprobar</button>
+            <textarea id="ch-sentence" rows="2" lang="pt-BR" placeholder="Escreva sua frase em português…" aria-label="Sua frase de exemplo"></textarea>
+            <label class="check"><input id="ch-save" type="checkbox" checked> Salvar minha frase na lista se estiver correta</label>
+            <button type="submit" class="btn primary">Verificar</button>
           </form>
           <div id="ch-ex-result" class="ch-result" aria-live="polite" hidden></div>
         </div>
 
         <div class="ch-actions">
-          <button id="ch-skip" type="button" class="link">Saltar (no cuenta)</button>
-          <button id="ch-next" type="button" class="btn" hidden>Siguiente palabra →</button>
+          <button id="ch-skip" type="button" class="link">Pular (não conta)</button>
+          <button id="ch-next" type="button" class="btn" hidden>Próxima palavra →</button>
         </div>
       </div>
     </section>
 
     <aside class="panel" aria-labelledby="score-title">
-      <h2 id="score-title">Puntajes</h2>
+      <h2 id="score-title">Pontuação</h2>
       <div class="score-grid">
-        <div class="score ok"><span id="sc-ok">0</span><small>aciertos</small></div>
-        <div class="score fail"><span id="sc-fail">0</span><small>fallos</small></div>
-        <div class="score"><span id="sc-acc">–</span><small>precisión</small></div>
-        <div class="score"><span id="sc-streak">0</span><small>racha (mejor <b id="sc-best">0</b>)</small></div>
+        <div class="score ok"><span id="sc-ok">0</span><small>acertos</small></div>
+        <div class="score fail"><span id="sc-fail">0</span><small>erros</small></div>
+        <div class="score"><span id="sc-acc">–</span><small>precisão</small></div>
+        <div class="score"><span id="sc-streak">0</span><small>sequência (melhor <b id="sc-best">0</b>)</small></div>
       </div>
       <table class="score-table">
         <thead><tr><th></th><th>✔</th><th>✘</th></tr></thead>
         <tbody>
-          <tr><td>Categoría</td><td id="sc-cat-ok">0</td><td id="sc-cat-fail">0</td></tr>
-          <tr><td>Ejemplo</td><td id="sc-ex-ok">0</td><td id="sc-ex-fail">0</td></tr>
+          <tr><td>Categoria</td><td id="sc-cat-ok">0</td><td id="sc-cat-fail">0</td></tr>
+          <tr><td>Exemplo</td><td id="sc-ex-ok">0</td><td id="sc-ex-fail">0</td></tr>
         </tbody>
       </table>
-      <h3 class="ch-step">Las que más te cuestan</h3>
+      <h3 class="ch-step">As mais difíceis para você</h3>
       <ol id="sc-hard" class="hard-list"></ol>
-      <p id="sc-hard-empty" class="muted small">Todavía no hay fallos. ¡Bien!</p>
-      <button id="sc-reset" type="button" class="link danger">Reiniciar puntajes</button>
+      <p id="sc-hard-empty" class="muted small">Ainda não há erros. Muito bem!</p>
+      <button id="sc-reset" type="button" class="link danger">Zerar pontuação</button>
 
       <section class="leaderboard" aria-labelledby="lb-title">
         <h2 id="lb-title">🏆 Ranking</h2>
-        <div class="lb-modes" role="group" aria-label="Período del ranking">
+        <div class="lb-modes" role="group" aria-label="Período do ranking">
           <button type="button" class="chip" data-mode="week" aria-pressed="true">Esta semana</button>
           <button type="button" class="chip" data-mode="total" aria-pressed="false">Total</button>
         </div>
         <p id="lb-note" class="muted small"></p>
         <ol id="lb-list" class="lb-list"></ol>
-        <p class="muted small">Puntos = aciertos en el desafío (categoría y frase). La semana empieza el lunes.</p>
+        <p class="muted small">Pontos = acertos no desafio (categoria e frase). A semana começa na segunda-feira.</p>
       </section>
-      <p class="muted small">La categoría se compara con la que tiene guardada la palabra en tu lista. La frase se comprueba revisando que use la palabra (o una forma conjugada); la gramática no se corrige: compara con el ejemplo que aparece.</p>
+      <p class="muted small">A categoria é comparada com a que está salva na sua lista. A frase é verificada conferindo se usa a palavra (ou uma forma conjugada); a gramática não é corrigida: compare com o exemplo que aparece.</p>
     </aside>
   </main>
 
-  <main id="view-friends" class="wrap" role="tabpanel" aria-labelledby="tab-friends" lang="pt-BR" hidden>
+  <main id="view-friends" class="wrap" role="tabpanel" aria-labelledby="tab-friends" hidden>
     <section id="friends-signin" class="panel friends-signin" hidden>
       <p>Entre com o Google para adicionar amigos e compartilhar palavras e frases.</p>
     </section>
@@ -212,7 +212,7 @@
 
       <section class="panel my-posts-panel" aria-labelledby="my-posts-title">
         <h2 id="my-posts-title">O que eu compartilhei <span id="my-likes-total" class="likes-total"></span></h2>
-        <p id="my-posts-empty" class="muted small">Compartilhe uma palavra com o botão 📤 da sua lista, ou a frase lá de cima com «📤 Compartir». Aqui você verá quem curtiu ❤️.</p>
+        <p id="my-posts-empty" class="muted small">Compartilhe uma palavra com o botão 📤 da sua lista, ou a frase lá de cima com «📤 Compartilhar». Aqui você verá quem curtiu ❤️.</p>
         <ul id="my-posts" class="feed"></ul>
       </section>
 
@@ -267,7 +267,7 @@
     </div>
   </main>
 
-  <dialog id="profile-dialog" class="help-dialog profile-dialog" aria-labelledby="pv-name" lang="pt-BR">
+  <dialog id="profile-dialog" class="help-dialog profile-dialog" aria-labelledby="pv-name">
     <div class="help-head">
       <h2>Perfil</h2>
       <button id="pv-close" type="button" class="icon-btn" aria-label="Fechar">✕</button>
@@ -277,78 +277,78 @@
 
   <dialog id="help-dialog" class="help-dialog" aria-labelledby="help-title">
     <div class="help-head">
-      <h2 id="help-title">Ayuda</h2>
-      <button id="help-close" type="button" class="icon-btn" aria-label="Cerrar">✕</button>
+      <h2 id="help-title">Ajuda</h2>
+      <button id="help-close" type="button" class="icon-btn" aria-label="Fechar">✕</button>
     </div>
 
     <section id="inbox" class="inbox" hidden aria-labelledby="inbox-title">
-      <h3 id="inbox-title">📥 Mensajes recibidos <span id="inbox-count" class="badge-count" hidden></span></h3>
-      <div class="inbox-filters" role="group" aria-label="Filtrar mensajes">
-        <button type="button" class="chip active" data-status="open">Pendientes</button>
-        <button type="button" class="chip" data-status="resolved">Resueltos</button>
+      <h3 id="inbox-title">📥 Mensagens recebidas <span id="inbox-count" class="badge-count" hidden></span></h3>
+      <div class="inbox-filters" role="group" aria-label="Filtrar mensagens">
+        <button type="button" class="chip active" data-status="open">Pendentes</button>
+        <button type="button" class="chip" data-status="resolved">Resolvidas</button>
         <button type="button" class="chip" data-status="all">Todos</button>
       </div>
-      <p id="inbox-empty" class="muted small">No hay mensajes.</p>
+      <p id="inbox-empty" class="muted small">Não há mensagens.</p>
       <ul id="inbox-list" class="inbox-list"></ul>
     </section>
 
     <section id="admin-users" class="inbox admin-users" hidden aria-labelledby="users-title">
       <details id="users-details">
-        <summary><h3 id="users-title">👥 Usuarios <span id="users-total" class="muted small"></span></h3></summary>
+        <summary><h3 id="users-title">👥 Usuários <span id="users-total" class="muted small"></span></h3></summary>
         <div id="users-stats" class="users-stats"></div>
-        <input id="users-search" type="search" placeholder="Buscar por nombre o correo…" aria-label="Buscar usuarios">
+        <input id="users-search" type="search" placeholder="Buscar por nome ou e-mail…" aria-label="Buscar usuários">
         <p id="users-note" class="muted small"></p>
         <ul id="users-list" class="users-list"></ul>
-        <button id="users-refresh" type="button" class="link">↻ Actualizar</button>
+        <button id="users-refresh" type="button" class="link">↻ Atualizar</button>
       </details>
     </section>
 
-    <section aria-labelledby="faq-title" lang="pt-BR">
+    <section aria-labelledby="faq-title">
       <h3 id="faq-title">Perguntas frequentes</h3>
       <div class="faq">
         <details><summary>Como adiciono palavras?</summary>
-          <p>Escreva a palavra ou expressão em português em «Agregar palabra». O app sugere a categoria e possíveis significados; você pode mudá-los antes de adicionar ou depois, no cartão (tocando no significado ou escolhendo outra categoria).</p></details>
+          <p>Escreva a palavra ou expressão em português em «Adicionar palavra». O app sugere a categoria e possíveis significados; você pode mudá-los antes de adicionar ou depois, no cartão (tocando no significado ou escolhendo outra categoria).</p></details>
         <details><summary>A categoria ou o gênero podem estar errados?</summary>
-          <p>Sim: eles são deduzidos com regras (terminações e listas de palavras), não com um dicionário completo. Quando o app não tem certeza, ele avisa (confiança baixa, ou «?» no gênero). Para corrigir o gênero, toque na etiqueta «masculino / femenino».</p></details>
+          <p>Sim: eles são deduzidos com regras (terminações e listas de palavras), não com um dicionário completo. Quando o app não tem certeza, ele avisa (confiança baixa, ou «?» no gênero). Para corrigir o gênero, toque na etiqueta «masculino / feminino».</p></details>
         <details><summary>De onde vêm os exemplos?</summary>
-          <p>Primeiro, os seus próprios exemplos; depois, frases reais do Tatoeba (com tradução) e do Wiktionary, e alguns exemplos escritos à mão. Se não houver nenhum, você pode escrever o seu em «Mis ejemplos».</p></details>
+          <p>Primeiro, os seus próprios exemplos; depois, frases reais do Tatoeba (com tradução) e do Wiktionary, e alguns exemplos escritos à mão. Se não houver nenhum, você pode escrever o seu em «Meus exemplos».</p></details>
         <details><summary>Como funcionam as notificações?</summary>
-          <p>Ative-as em «Notificaciones» e escolha de quantos em quantos minutos. Elas chegam enquanto o app estiver aberto (mesmo em segundo plano). No iPhone, se você não ouvir o áudio, confira a chave de silêncio.</p></details>
+          <p>Ative-as em «Notificações» e escolha de quantos em quantos minutos. Elas chegam enquanto o app estiver aberto (mesmo em segundo plano). No iPhone, se você não ouvir o áudio, confira a chave de silêncio.</p></details>
         <details><summary>Como vejo minha lista em outro aparelho?</summary>
           <p>Entre com sua conta do Google no topo da página: sua lista, pontuações e foto são sincronizadas em todos os seus aparelhos.</p></details>
         <details><summary>Como adiciono amigos? Eles veem minhas palavras?</summary>
           <p>Na aba 👥 Amigos, escreva o e-mail do seu amigo (ele precisa ter entrado no app pelo menos uma vez). Seus amigos podem ver seu perfil e suas palavras; se preferir, desative isso em «✏️ Meu perfil». Além disso, você pode compartilhar palavras e frases com o botão 📤.</p></details>
         <details><summary>Como salvo minha lista?</summary>
-          <p>Embaixo da lista: «Exportar a PDF» para imprimir ou salvar, e «Exportar lista (JSON)» para ter uma cópia que você pode importar de novo.</p></details>
+          <p>Embaixo da lista: «Exportar para PDF» para imprimir ou salvar, e «Exportar lista (JSON)» para ter uma cópia que você pode importar de novo.</p></details>
       </div>
     </section>
 
     <section id="diag" class="diag" hidden aria-labelledby="diag-title">
       <details>
-        <summary id="diag-title">⚙️ Datos de tu cuenta</summary>
-        <p class="small">Tu UID: <code id="diag-uid"></code> <button id="diag-copy" type="button" class="link">Copiar</button></p>
+        <summary id="diag-title">⚙️ Dados da sua conta</summary>
+        <p class="small">Seu UID: <code id="diag-uid"></code> <button id="diag-copy" type="button" class="link">Copiar</button></p>
         <p class="small">Administrador: <span id="diag-admin"></span></p>
       </details>
     </section>
 
     <section aria-labelledby="contact-title">
-      <h3 id="contact-title">Escríbenos</h3>
-      <p class="muted small">¿Una idea, algo que no funciona o algo que te gustaría tener? Cuéntanos.</p>
+      <h3 id="contact-title">Fale conosco</h3>
+      <p class="muted small">Uma ideia, algo que não funciona ou algo que você gostaria de ter? Conte para nós.</p>
       <form id="feedback-form" class="feedback-form" autocomplete="off">
-        <label for="fb-type">Tipo de mensaje</label>
+        <label for="fb-type">Tipo de mensagem</label>
         <select id="fb-type" required>
-          <option value="sugerencia">💡 Sugerencia o idea</option>
-          <option value="problema">🐞 Algo no funciona</option>
-          <option value="pedido">🙋 Quiero pedir algo</option>
-          <option value="otro">💬 Otro</option>
+          <option value="sugerencia">💡 Sugestão ou ideia</option>
+          <option value="problema">🐞 Algo não funciona</option>
+          <option value="pedido">🙋 Quero pedir algo</option>
+          <option value="otro">💬 Outro</option>
         </select>
-        <label for="fb-message">Mensaje</label>
-        <textarea id="fb-message" rows="5" maxlength="2000" required placeholder="Escribe aquí… Si algo no funciona, cuéntanos qué hiciste y qué pasó."></textarea>
+        <label for="fb-message">Mensagem</label>
+        <textarea id="fb-message" rows="5" maxlength="2000" required placeholder="Escreva aqui… Se algo não funciona, conte o que você fez e o que aconteceu."></textarea>
         <p id="fb-count" class="muted small fb-count">0 / 2000</p>
-        <label for="fb-email">Tu correo, para responderte <span class="optional">(opcional)</span></label>
-        <input id="fb-email" type="email" inputmode="email" maxlength="200" placeholder="correo@ejemplo.com">
-        <label class="check"><input id="fb-tech" type="checkbox" checked> Incluir información técnica (navegador y versión de la app)</label>
-        <button type="submit" class="btn primary">Enviar mensaje</button>
+        <label for="fb-email">Seu e-mail, para responder você <span class="optional">(opcional)</span></label>
+        <input id="fb-email" type="email" inputmode="email" maxlength="200" placeholder="email@exemplo.com">
+        <label class="check"><input id="fb-tech" type="checkbox" checked> Incluir informações técnicas (navegador e versão do app)</label>
+        <button type="submit" class="btn primary">Enviar mensagem</button>
         <p id="fb-status" class="small" aria-live="polite"></p>
       </form>
     </section>
@@ -357,19 +357,19 @@
   <div id="toasts" class="toasts" aria-live="polite"></div>
   <div id="print-view" class="print-view" aria-hidden="true"></div>
 
-  <script src="js/classifier.js?v=42"></script>
-  <script src="js/sentences.js?v=42"></script>
-  <script src="js/examples.js?v=42"></script>
-  <script src="js/gender-es.js?v=42"></script>
-  <script src="js/verbs.js?v=42"></script>
-  <script src="js/phrases.js?v=42"></script>
-  <script src="js/app.js?v=42"></script>
-  <script src="js/translate.js?v=42"></script>
-  <script src="js/challenge.js?v=42"></script>
-  <script src="js/firebase-config.js?v=42"></script>
-  <script type="module" src="js/sync.js?v=42"></script>
-  <script type="module" src="js/social.js?v=42"></script>
-  <script type="module" src="js/help.js?v=42"></script>
-  <script type="module" src="js/leaderboard.js?v=42"></script>
+  <script src="js/classifier.js?v=44"></script>
+  <script src="js/sentences.js?v=44"></script>
+  <script src="js/examples.js?v=44"></script>
+  <script src="js/gender-es.js?v=44"></script>
+  <script src="js/verbs.js?v=44"></script>
+  <script src="js/phrases.js?v=44"></script>
+  <script src="js/app.js?v=44"></script>
+  <script src="js/translate.js?v=44"></script>
+  <script src="js/challenge.js?v=44"></script>
+  <script src="js/firebase-config.js?v=44"></script>
+  <script type="module" src="js/sync.js?v=44"></script>
+  <script type="module" src="js/social.js?v=44"></script>
+  <script type="module" src="js/help.js?v=44"></script>
+  <script type="module" src="js/leaderboard.js?v=44"></script>
 </body>
 </html>

@@ -8,12 +8,12 @@
   'use strict'
 
   var CATEGORIES = {
-    sustantivo: { label: 'Sustantivo', pt: 'substantivo' },
+    sustantivo: { label: 'Substantivo', pt: 'substantivo' },
     adjetivo: { label: 'Adjetivo', pt: 'adjetivo' },
     verbo: { label: 'Verbo', pt: 'verbo' },
-    adverbio: { label: 'Adverbio', pt: 'advérbio' },
-    conector: { label: 'Conector', pt: 'conectivo' },
-    expresion: { label: 'Expresión', pt: 'expressão' }
+    adverbio: { label: 'Advérbio', pt: 'advérbio' },
+    conector: { label: 'Conectivo', pt: 'conectivo' },
+    expresion: { label: 'Expressão', pt: 'expressão' }
   }
 
   // Conectores (simples y compuestos) más frecuentes.
@@ -77,40 +77,40 @@
 
   // Reglas de sufijos: [sufijo, categoría, confianza, explicación]
   var SUFFIX_RULES = [
-    ['mente', 'adverbio', 0.95, 'termina en "-mente" (como "-mente" en español)'],
-    ['ção', 'sustantivo', 0.9, 'termina en "-ção" (≈ "-ción")'],
-    ['ções', 'sustantivo', 0.9, 'termina en "-ções" (≈ "-ciones")'],
-    ['são', 'sustantivo', 0.8, 'termina en "-são" (≈ "-sión")'],
-    ['dade', 'sustantivo', 0.9, 'termina en "-dade" (≈ "-dad")'],
-    ['tude', 'sustantivo', 0.85, 'termina en "-tude" (≈ "-tud")'],
-    ['mento', 'sustantivo', 0.85, 'termina en "-mento" (≈ "-miento")'],
-    ['agem', 'sustantivo', 0.85, 'termina en "-agem" (≈ "-aje")'],
-    ['ismo', 'sustantivo', 0.85, 'termina en "-ismo"'],
-    ['ência', 'sustantivo', 0.85, 'termina en "-ência" (≈ "-encia")'],
-    ['ância', 'sustantivo', 0.85, 'termina en "-ância" (≈ "-ancia")'],
-    ['eza', 'sustantivo', 0.8, 'termina en "-eza"'],
-    ['ura', 'sustantivo', 0.6, 'termina en "-ura"'],
-    ['eiro', 'sustantivo', 0.6, 'termina en "-eiro" (≈ "-ero")'],
-    ['eira', 'sustantivo', 0.6, 'termina en "-eira" (≈ "-era")'],
-    ['ista', 'sustantivo', 0.6, 'termina en "-ista"'],
-    ['oso', 'adjetivo', 0.85, 'termina en "-oso"'],
-    ['osa', 'adjetivo', 0.8, 'termina en "-osa"'],
-    ['vel', 'adjetivo', 0.85, 'termina en "-vel" (≈ "-ble")'],
-    ['ivo', 'adjetivo', 0.75, 'termina en "-ivo"'],
-    ['iva', 'adjetivo', 0.7, 'termina en "-iva"'],
-    ['ento', 'adjetivo', 0.6, 'termina en "-ento" (ej.: barulhento)'],
-    ['ado', 'adjetivo', 0.6, 'termina en "-ado" (participio usado como adjetivo)'],
-    ['ido', 'adjetivo', 0.55, 'termina en "-ido" (participio usado como adjetivo)'],
-    ['ante', 'adjetivo', 0.5, 'termina en "-ante"'],
-    ['ente', 'adjetivo', 0.5, 'termina en "-ente"'],
-    ['ico', 'adjetivo', 0.5, 'termina en "-ico"'],
-    ['ês', 'adjetivo', 0.5, 'termina en "-ês" (gentilicios: português, inglês)'],
-    ['ar', 'verbo', 0.75, 'termina en "-ar" (infinitivo de la 1ª conjugación)'],
-    ['er', 'verbo', 0.7, 'termina en "-er" (infinitivo de la 2ª conjugación)'],
-    ['ir', 'verbo', 0.7, 'termina en "-ir" (infinitivo de la 3ª conjugación)'],
+    ['mente', 'adverbio', 0.95, 'termina em "-mente" (como "-mente" em espanhol)'],
+    ['ção', 'sustantivo', 0.9, 'termina em "-ção" (≈ "-ción")'],
+    ['ções', 'sustantivo', 0.9, 'termina em "-ções" (≈ "-ciones")'],
+    ['são', 'sustantivo', 0.8, 'termina em "-são" (≈ "-sión")'],
+    ['dade', 'sustantivo', 0.9, 'termina em "-dade" (≈ "-dad")'],
+    ['tude', 'sustantivo', 0.85, 'termina em "-tude" (≈ "-tud")'],
+    ['mento', 'sustantivo', 0.85, 'termina em "-mento" (≈ "-miento")'],
+    ['agem', 'sustantivo', 0.85, 'termina em "-agem" (≈ "-aje")'],
+    ['ismo', 'sustantivo', 0.85, 'termina em "-ismo"'],
+    ['ência', 'sustantivo', 0.85, 'termina em "-ência" (≈ "-encia")'],
+    ['ância', 'sustantivo', 0.85, 'termina em "-ância" (≈ "-ancia")'],
+    ['eza', 'sustantivo', 0.8, 'termina em "-eza"'],
+    ['ura', 'sustantivo', 0.6, 'termina em "-ura"'],
+    ['eiro', 'sustantivo', 0.6, 'termina em "-eiro" (≈ "-ero")'],
+    ['eira', 'sustantivo', 0.6, 'termina em "-eira" (≈ "-era")'],
+    ['ista', 'sustantivo', 0.6, 'termina em "-ista"'],
+    ['oso', 'adjetivo', 0.85, 'termina em "-oso"'],
+    ['osa', 'adjetivo', 0.8, 'termina em "-osa"'],
+    ['vel', 'adjetivo', 0.85, 'termina em "-vel" (≈ "-ble")'],
+    ['ivo', 'adjetivo', 0.75, 'termina em "-ivo"'],
+    ['iva', 'adjetivo', 0.7, 'termina em "-iva"'],
+    ['ento', 'adjetivo', 0.6, 'termina em "-ento" (ex.: barulhento)'],
+    ['ado', 'adjetivo', 0.6, 'termina em "-ado" (particípio usado como adjetivo)'],
+    ['ido', 'adjetivo', 0.55, 'termina em "-ido" (particípio usado como adjetivo)'],
+    ['ante', 'adjetivo', 0.5, 'termina em "-ante"'],
+    ['ente', 'adjetivo', 0.5, 'termina em "-ente"'],
+    ['ico', 'adjetivo', 0.5, 'termina em "-ico"'],
+    ['ês', 'adjetivo', 0.5, 'termina em "-ês" (gentílicos: português, inglês)'],
+    ['ar', 'verbo', 0.75, 'termina em "-ar" (infinitivo da 1ª conjugação)'],
+    ['er', 'verbo', 0.7, 'termina em "-er" (infinitivo da 2ª conjugação)'],
+    ['ir', 'verbo', 0.7, 'termina em "-ir" (infinitivo da 3ª conjugação)'],
     ['por', 'verbo', 0.6, 'derivado de "pôr" (compor, dispor...)'],
-    ['ão', 'sustantivo', 0.6, 'termina en "-ão"'],
-    ['ões', 'sustantivo', 0.6, 'termina en "-ões"']
+    ['ão', 'sustantivo', 0.6, 'termina em "-ão"'],
+    ['ões', 'sustantivo', 0.6, 'termina em "-ões"']
   ]
 
   function normalize (text) {
@@ -131,31 +131,31 @@
 
   function classify (input) {
     var w = normalize(input)
-    if (!w) return result(null, 0, 'Palabra vacía')
+    if (!w) return result(null, 0, 'Palavra vazia')
 
-    if (inList(CONNECTORS, w)) return result('conector', 0.95, 'es un conector frecuente')
+    if (inList(CONNECTORS, w)) return result('conector', 0.95, 'é um conectivo frequente')
 
     if (w.indexOf(' ') !== -1) {
-      return result('expresion', 0.85, 'tiene varias palabras: parece una expresión')
+      return result('expresion', 0.85, 'tem várias palavras: parece uma expressão')
     }
 
     // Verbos reflexivos / con pronombre enclítico: lembrar-se, chamar-se, dá-lo...
     if (/^[a-zà-ú]+(ar|er|ir|or)-(se|me|te|nos|lo|la|los|las)$/.test(w)) {
-      return result('verbo', 0.9, 'es un verbo con pronombre (reflexivo)')
+      return result('verbo', 0.9, 'é um verbo com pronome (reflexivo)')
     }
     if (w.indexOf('-') !== -1) {
-      return result('expresion', 0.6, 'es una palabra compuesta con guion')
+      return result('expresion', 0.6, 'é uma palavra composta com hífen')
     }
 
-    if (inList(ADVERBS, w)) return result('adverbio', 0.9, 'es un adverbio frecuente')
+    if (inList(ADVERBS, w)) return result('adverbio', 0.9, 'é um advérbio frequente')
     var sing = /s$/.test(w) ? w.slice(0, -1) : w
-    if (inList(ADJECTIVES, w) || inList(ADJECTIVES, sing)) return result('adjetivo', 0.9, 'es un adjetivo frecuente')
-    if (inList(NOUN_EXCEPTIONS, w) || inList(NOUN_EXCEPTIONS, sing)) return result('sustantivo', 0.85, 'es un sustantivo frecuente')
-    if (w === 'pôr') return result('verbo', 0.95, 'es el verbo "pôr"')
+    if (inList(ADJECTIVES, w) || inList(ADJECTIVES, sing)) return result('adjetivo', 0.9, 'é um adjetivo frequente')
+    if (inList(NOUN_EXCEPTIONS, w) || inList(NOUN_EXCEPTIONS, sing)) return result('sustantivo', 0.85, 'é um substantivo frequente')
+    if (w === 'pôr') return result('verbo', 0.95, 'é o verbo "pôr"')
 
     // -or que no sea "-por" suele ser sustantivo (professor, ator).
     if (/or$/.test(w) && !/por$/.test(w)) {
-      return result('sustantivo', 0.65, 'termina en "-or" (como "profesor", "actor")')
+      return result('sustantivo', 0.65, 'termina em "-or" (como "professor", "ator")')
     }
 
     for (var i = 0; i < SUFFIX_RULES.length; i++) {
@@ -166,7 +166,7 @@
       }
     }
 
-    return result('sustantivo', 0.3, 'sin pistas claras; por defecto, sustantivo')
+    return result('sustantivo', 0.3, 'sem pistas claras; por padrão, substantivo')
   }
 
   var api = {

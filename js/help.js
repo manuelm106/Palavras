@@ -21,12 +21,12 @@ let inbox = []
 let inboxFilter = 'open'
 
 const TYPES = {
-  sugerencia: '💡 Sugerencia',
-  problema: '🐞 Algo no funciona',
+  sugerencia: '💡 Sugestão',
+  problema: '🐞 Algo não funciona',
   pedido: '🙋 Pedido',
-  otro: '💬 Otro'
+  otro: '💬 Outro'
 }
-const STATUS = { new: 'Nuevo', seen: 'Visto', resolved: 'Resuelto' }
+const STATUS = { new: 'Nova', seen: 'Vista', resolved: 'Resolvida' }
 
 // ---------- Abrir y cerrar ----------
 function openHelp () {
@@ -58,11 +58,11 @@ function setStatus (text, kind) {
 $('feedback-form').addEventListener('submit', async (e) => {
   e.preventDefault()
   const text = message.value.trim()
-  if (text.length < 5) { setStatus('Escribe un poco más (al menos 5 caracteres).', 'warn'); message.focus(); return }
+  if (text.length < 5) { setStatus('Escreva um pouco mais (pelo menos 5 caracteres).', 'warn'); message.focus(); return }
   let last = 0
   try { last = Number(localStorage.getItem('palabras-pt:feedback-ultimo') || 0) } catch (err) {}
-  if (Date.now() - last < COOLDOWN_MS) { setStatus('Acabas de enviar un mensaje. Espera un minuto para enviar otro.', 'warn'); return }
-  if (!cloud) { setStatus('No se pudo conectar. Revisa tu conexión e inténtalo de nuevo.', 'warn'); return }
+  if (Date.now() - last < COOLDOWN_MS) { setStatus('Você acabou de enviar uma mensagem. Espere um minuto para enviar outra.', 'warn'); return }
+  if (!cloud) { setStatus('Não foi possível conectar. Confira sua conexão e tente de novo.', 'warn'); return }
 
   const { fs, db } = cloud
   const user = cloud.user
@@ -86,13 +86,13 @@ $('feedback-form').addEventListener('submit', async (e) => {
     try { localStorage.setItem('palabras-pt:feedback-ultimo', String(Date.now())) } catch (err) {}
     message.value = ''
     $('fb-count').textContent = '0 / 2000'
-    setStatus('¡Gracias! Recibimos tu mensaje.' + (email ? ' Si hace falta, te responderemos a ' + email + '.' : ''), 'ok')
-    app.toast('¡Gracias por tu mensaje!', 'ok')
+    setStatus('Obrigado! Recebemos sua mensagem.' + (email ? ' Se for preciso, responderemos para ' + email + '.' : ''), 'ok')
+    app.toast('Obrigado pela sua mensagem!', 'ok')
   } catch (err) {
     console.error(err)
     setStatus(err.code === 'permission-denied'
-      ? 'No se pudo enviar: falta actualizar las reglas de Firestore.'
-      : 'No se pudo enviar (' + (err.code || 'sin conexión') + '). Inténtalo de nuevo.', 'warn')
+      ? 'Não foi possível enviar: falta atualizar as regras do Firestore.'
+      : 'Não foi possível enviar (' + (err.code || 'sem conexão') + '). Tente de novo.', 'warn')
   } finally {
     button.disabled = false
   }
@@ -114,21 +114,21 @@ async function checkAdmin (user) {
   users = null
   if ($('users-details')) $('users-details').open = false
   renderInbox()
-  setDiag(user, user ? 'Comprobando…' : null)
+  setDiag(user, user ? 'Verificando…' : null)
   if (!user) return
   const { fs, db } = cloud
   try {
     const snap = await fs.getDocFromServer(fs.doc(db, 'admins', user.uid))
     isAdmin = snap.exists()
     setDiag(user, isAdmin
-      ? '✔ Tu cuenta es administradora.'
-      : 'No encontré el documento admins/' + user.uid + '. Créalo en Firestore (colección «admins», ID del documento = tu UID).')
+      ? '✔ Sua conta é administradora.'
+      : 'Não encontrei o documento admins/' + user.uid + '. Crie-o no Firestore (coleção «admins», ID do documento = seu UID).')
   } catch (err) {
     isAdmin = false
     // permission-denied: las reglas publicadas no tienen la parte de administradores.
     setDiag(user, err.code === 'permission-denied'
-      ? 'Firebase no permite comprobarlo: falta publicar las reglas nuevas de Firestore.'
-      : 'No se pudo comprobar (' + (err.code || 'sin conexión') + '). Revisa tu conexión.')
+      ? 'O Firebase não permite verificar: falta publicar as regras novas do Firestore.'
+      : 'Não foi possível verificar (' + (err.code || 'sem conexão') + '). Confira sua conexão.')
   }
   if (!isAdmin || !cloud.user || cloud.user.uid !== user.uid) { renderInbox(); return }
   const q = fs.query(fs.collection(db, 'feedback'), fs.orderBy('createdAt', 'desc'), fs.limit(100))
@@ -141,12 +141,12 @@ async function checkAdmin (user) {
 
 function setFeedbackStatus (item, status) {
   const { fs, db } = cloud
-  fs.updateDoc(fs.doc(db, 'feedback', item.id), { status }).catch((err) => app.toast('No se pudo actualizar (' + (err.code || 'error') + ').', 'info'))
+  fs.updateDoc(fs.doc(db, 'feedback', item.id), { status }).catch((err) => app.toast('Não foi possível atualizar (' + (err.code || 'error') + ').', 'info'))
 }
 function deleteFeedback (item) {
-  if (!confirm('¿Borrar este mensaje?')) return
+  if (!confirm('Apagar esta mensagem?')) return
   const { fs, db } = cloud
-  fs.deleteDoc(fs.doc(db, 'feedback', item.id)).catch((err) => app.toast('No se pudo borrar (' + (err.code || 'error') + ').', 'info'))
+  fs.deleteDoc(fs.doc(db, 'feedback', item.id)).catch((err) => app.toast('Não foi possível apagar (' + (err.code || 'error') + ').', 'info'))
 }
 
 document.querySelectorAll('.inbox-filters .chip').forEach((b) => {
@@ -181,7 +181,7 @@ $('users-search').addEventListener('input', () => { usersQuery = $('users-search
 async function loadUsers () {
   if (!isAdmin || usersLoading) return
   usersLoading = true
-  $('users-note').textContent = 'Cargando usuarios…'
+  $('users-note').textContent = 'Carregando usuários…'
   const { fs, db } = cloud
   try {
     const [profs, emails] = await Promise.all([
@@ -196,8 +196,8 @@ async function loadUsers () {
   } catch (err) {
     console.error(err)
     $('users-note').textContent = err.code === 'permission-denied'
-      ? 'Sin permiso: falta publicar las reglas nuevas de Firestore.'
-      : 'No se pudieron cargar los usuarios (' + (err.code || 'error') + ').'
+      ? 'Sem permissão: falta publicar as regras novas do Firestore.'
+      : 'Não foi possível carregar os usuários (' + (err.code || 'error') + ').'
   }
   usersLoading = false
   renderUsers()
@@ -206,12 +206,12 @@ async function loadUsers () {
 function ago (ms) {
   if (!ms) return '—'
   const d = new Date(ms)
-  const time = d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
+  const time = d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
   const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(ms).setHours(0, 0, 0, 0)) / 864e5)
-  if (days <= 0) return 'hoy ' + time
-  if (days === 1) return 'ayer ' + time
-  if (days < 30) return 'hace ' + days + ' días'
-  return new Date(ms).toLocaleDateString('es')
+  if (days <= 0) return 'hoje ' + time
+  if (days === 1) return 'ontem ' + time
+  if (days < 30) return 'há ' + days + ' dias'
+  return new Date(ms).toLocaleDateString('pt-BR')
 }
 
 function miniAvatar (u) {
@@ -233,10 +233,10 @@ function renderUsers () {
   $('users-total').textContent = '(' + users.length + ')'
   const stat = (n, label) => el('div', { class: 'score' }, [el('span', { text: String(n) }), el('small', { text: label })])
   $('users-stats').replaceChildren(
-    stat(users.length, 'usuarios'),
-    stat(active, 'activos en 7 días'),
-    stat(fresh, 'nuevos en 7 días'),
-    stat(words, 'palabras en total')
+    stat(users.length, 'usuários'),
+    stat(active, 'ativos em 7 dias'),
+    stat(fresh, 'novos em 7 dias'),
+    stat(words, 'palavras no total')
   )
   const list = users.filter((u) => !usersQuery || (u.name || '').toLowerCase().includes(usersQuery) || (u.email || '').toLowerCase().includes(usersQuery))
   $('users-list').replaceChildren(...list.map((u) => {
@@ -245,19 +245,19 @@ function renderUsers () {
       miniAvatar(u),
       el('div', { class: 'user-main' }, [
         el('div', {}, [
-          el('strong', { text: u.name || 'Sin nombre' }),
+          el('strong', { text: u.name || 'Sem nome' }),
           u.email ? el('span', { class: 'muted small' }, [' · ', el('a', { href: 'mailto:' + encodeURIComponent(u.email), text: u.email })]) : null
         ]),
         el('div', { class: 'muted small', text:
-          'Registro: ' + (u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('es') : '—') +
+          'Cadastro: ' + (u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('pt-BR') : '—') +
           ' · Última visita: ' + ago(u.lastSeen) +
-          ' · ' + (typeof u.wordCount === 'number' ? u.wordCount + ' palabras' : 'palabras: —') +
+          ' · ' + (typeof u.wordCount === 'number' ? u.wordCount + ' palavras' : 'palavras: —') +
           ' · ' + (c.ok || 0) + ' pts' +
-          ' · versión ' + (u.appVersion ? u.appVersion + (u.appVersion === CURRENT_V ? ' ✓' : ' (vieja)') : 'vieja') })
+          ' · versão ' + (u.appVersion ? u.appVersion + (u.appVersion === CURRENT_V ? ' ✓' : ' (antiga)') : 'antiga') })
       ])
     ])
   }))
-  $('users-note').textContent = users.length && !list.length ? 'Nadie coincide con la búsqueda.' : (users.some((u) => u.appVersion !== CURRENT_V) ? 'Quien figura con «versión vieja» todavía no abrió la versión actual: sus datos (por ejemplo, la cantidad de palabras) se actualizan cuando la abra.' : '')
+  $('users-note').textContent = users.length && !list.length ? 'Ninguém corresponde à busca.' : (users.some((u) => u.appVersion !== CURRENT_V) ? 'Quem aparece com «versão antiga» ainda não abriu a versão atual: os dados dessa pessoa (por exemplo, a quantidade de palavras) são atualizados quando ela abrir.' : '')
 }
 
 function renderInbox () {
@@ -275,19 +275,19 @@ function renderInbox () {
     el('div', { class: 'inbox-head' }, [
       el('strong', { text: TYPES[m.type] || m.type }),
       el('span', { class: 'inbox-status', text: STATUS[m.status] || m.status }),
-      el('span', { class: 'muted small', text: new Date(m.createdAt).toLocaleString('es') })
+      el('span', { class: 'muted small', text: new Date(m.createdAt).toLocaleString('pt-BR') })
     ]),
     el('p', { class: 'inbox-message', text: m.message }),
     el('div', { class: 'muted small' }, [
-      (m.name || 'Sin sesión iniciada'),
-      m.email ? el('span', {}, [' · ', el('a', { href: 'mailto:' + encodeURIComponent(m.email) + '?subject=' + encodeURIComponent('Palavras: tu mensaje'), text: m.email })]) : ' · sin correo',
+      (m.name || 'Sem login'),
+      m.email ? el('span', {}, [' · ', el('a', { href: 'mailto:' + encodeURIComponent(m.email) + '?subject=' + encodeURIComponent('Palavras: sua mensagem'), text: m.email })]) : ' · sem e-mail',
       m.appVersion ? ' · v' + m.appVersion : ''
     ]),
-    m.userAgent ? el('details', { class: 'inbox-tech' }, [el('summary', { text: 'Información técnica' }), el('code', { text: m.userAgent })]) : null,
+    m.userAgent ? el('details', { class: 'inbox-tech' }, [el('summary', { text: 'Informações técnicas' }), el('code', { text: m.userAgent })]) : null,
     el('div', { class: 'inbox-actions' }, [
-      m.status !== 'seen' && m.status !== 'resolved' ? el('button', { type: 'button', class: 'link', text: 'Marcar como visto', onclick: () => setFeedbackStatus(m, 'seen') }) : null,
-      m.status !== 'resolved' ? el('button', { type: 'button', class: 'link', text: '✓ Resuelto', onclick: () => setFeedbackStatus(m, 'resolved') }) : el('button', { type: 'button', class: 'link', text: 'Reabrir', onclick: () => setFeedbackStatus(m, 'seen') }),
-      el('button', { type: 'button', class: 'link danger', text: 'Borrar', onclick: () => deleteFeedback(m) })
+      m.status !== 'seen' && m.status !== 'resolved' ? el('button', { type: 'button', class: 'link', text: 'Marcar como vista', onclick: () => setFeedbackStatus(m, 'seen') }) : null,
+      m.status !== 'resolved' ? el('button', { type: 'button', class: 'link', text: '✓ Resolvida', onclick: () => setFeedbackStatus(m, 'resolved') }) : el('button', { type: 'button', class: 'link', text: 'Reabrir', onclick: () => setFeedbackStatus(m, 'seen') }),
+      el('button', { type: 'button', class: 'link danger', text: 'Apagar', onclick: () => deleteFeedback(m) })
     ])
   ])))
 }
@@ -307,6 +307,6 @@ $('diag-copy').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(uid); app.toast('UID copiado.', 'ok') } catch (e) {
     const r = document.createRange(); r.selectNodeContents($('diag-uid'))
     const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r)
-    app.toast('Selecciona y copia el UID.', 'info')
+    app.toast('Selecione e copie o UID.', 'info')
   }
 })

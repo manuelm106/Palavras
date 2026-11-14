@@ -105,8 +105,8 @@
   function checkSentence (w, sentence) {
     var st = tokens(sentence)
     // Problemas de formato: no cuentan como intento, se puede corregir la frase.
-    if (fold(sentence).trim() === fold(w.word).trim()) return { ok: false, retry: true, reason: 'Escribe una frase completa, no solo la palabra.' }
-    if (st.length < 3) return { ok: false, retry: true, reason: 'La frase es muy corta: usa al menos 3 palabras. Corrígela y vuelve a comprobar.' }
+    if (fold(sentence).trim() === fold(w.word).trim()) return { ok: false, retry: true, reason: 'Escreva uma frase completa, não só a palavra.' }
+    if (st.length < 3) return { ok: false, retry: true, reason: 'A frase está muito curta: use pelo menos 3 palavras. Corrija e verifique de novo.' }
     var parts = tokens(w.word)
     var ok
     if (parts.length === 1) {
@@ -122,7 +122,7 @@
       ok = rest.every(function (p) { return usesTerm(st, p, false) }) &&
         (usesTerm(st, first, firstIsVerb) || (firstIsVerb && rest.length > 0))
     }
-    return ok ? { ok: true } : { ok: false, reason: 'Tu frase no usa «' + w.word + '» (ni una forma conjugada o derivada).' }
+    return ok ? { ok: true } : { ok: false, reason: 'Sua frase não usa «' + w.word + '» (nem uma forma conjugada ou derivada).' }
   }
 
   // ---------- Rondas ----------
@@ -158,7 +158,7 @@
     saveLocal()
 
     $('ch-word').textContent = w.word
-    $('ch-meaning').textContent = w.meaning ? w.meaning : '(sin significado guardado)'
+    $('ch-meaning').textContent = w.meaning ? w.meaning : '(sem significado salvo)'
     $('ch-meaning').hidden = true
     $('ch-hint-btn').hidden = false
     $('ch-cat-result').hidden = true
@@ -169,7 +169,7 @@
     $('ch-form').querySelector('button').disabled = false
     $('ch-next').hidden = true
     $('ch-skip').hidden = false
-    $('ch-skip').textContent = 'Saltar (no cuenta)'
+    $('ch-skip').textContent = 'Pular (não conta)'
 
     var box = $('ch-cats')
     box.innerHTML = ''
@@ -289,8 +289,8 @@
     res.hidden = false
     res.className = 'ch-result ' + (current.catOk ? 'ok' : 'fail')
     res.textContent = current.catOk
-      ? '✔ ¡Correcto! Es un ' + CATS[w.category].label.toLowerCase() + '.'
-      : '✘ No. «' + w.word + '» es ' + articleFor(w.category) + ' ' + CATS[w.category].label.toLowerCase() + '.'
+      ? '✔ Correto! É ' + articleFor(w.category) + ' ' + CATS[w.category].label.toLowerCase() + '.'
+      : '✘ Não. «' + w.word + '» é ' + articleFor(w.category) + ' ' + CATS[w.category].label.toLowerCase() + '.'
     var vi = app.verbInfo && app.verbInfo(w)
     if (vi) {
       var vnote = document.createElement('div')
@@ -303,16 +303,16 @@
     if (gc && gc.status === 'different') {
       var alert = document.createElement('div')
       alert.className = 'gender-alert'
-      alert.textContent = '⚠️ ¡OJO! ' + gc.pt.article + ' ' + w.word + ' es ' + app.genderLabel[gc.pt.g] + ', pero en español ' + gc.es.article + ' ' + gc.es.word + ' es ' + app.genderLabel[gc.es.g] + '.'
+      alert.textContent = '⚠️ ATENÇÃO! ' + gc.pt.article + ' ' + w.word + ' é ' + app.genderLabel[gc.pt.g] + ', mas em espanhol ' + gc.es.article + ' ' + gc.es.word + ' é ' + app.genderLabel[gc.es.g] + '.'
       res.appendChild(alert)
     }
     $('ch-step2').hidden = false
-    $('ch-skip').textContent = 'Saltar la frase (cuenta como fallo)'
+    $('ch-skip').textContent = 'Pular a frase (conta como erro)'
     $('ch-sentence').focus()
     renderScores()
   }
 
-  function articleFor (cat) { return cat === 'expresion' ? 'una' : 'un' }
+  function articleFor (cat) { return cat === 'expresion' ? 'uma' : 'um' }
 
   $('ch-form').addEventListener('submit', function (e) {
     e.preventDefault()
@@ -360,13 +360,13 @@
     box.className = 'ch-result ' + (result.ok ? 'ok' : 'fail')
     box.innerHTML = ''
     box.appendChild(document.createTextNode(result.ok
-      ? '✔ ¡Bien! Tu frase usa «' + w.word + '».' + ($('ch-save').checked ? ' La guardé en tu lista.' : '')
+      ? '✔ Muito bem! Sua frase usa «' + w.word + '».' + ($('ch-save').checked ? ' Eu a salvei na sua lista.' : '')
       : '✘ ' + result.reason))
     if (modelItem) {
       var ex = document.createElement('div')
       ex.className = 'ch-model'
       ex.setAttribute('lang', 'pt-BR')
-      ex.textContent = 'Un ejemplo: ' + modelItem.pt + (modelItem.es ? ' (' + modelItem.es + ')' : '')
+      ex.textContent = 'Um exemplo: ' + modelItem.pt + (modelItem.es ? ' (' + modelItem.es + ')' : '')
       box.appendChild(ex)
     }
 
@@ -437,7 +437,7 @@
   }
 
   $('sc-reset').addEventListener('click', function () {
-    if (!confirm('¿Reiniciar todos los puntajes del desafío? Esto no borra tus palabras.')) return
+    if (!confirm('Zerar toda a pontuação do desafio? Isso não apaga suas palavras.')) return
     app.getWords().forEach(function (w) { delete w.stats })
     app.save()
     local.streak = 0
