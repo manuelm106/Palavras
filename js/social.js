@@ -974,7 +974,15 @@ async function publishPublic () {
   const { fs, db } = cloud
   const snap = await fs.getDoc(fs.doc(db, 'profiles', user.uid))
   const prof = snap.exists() ? snap.data() : {}
-  const words = app.getWords()
+  // Las palabras salen de la cuenta en la nube (no de la lista de este dispositivo,
+  // que podría no haber terminado de cargar). Si no se puede leer, se usa la local.
+  let words = app.getWords()
+  try {
+    const us = await fs.getDocFromServer(fs.doc(db, 'users', user.uid))
+    const cloudWords = us.exists() && us.data().words ? Object.values(us.data().words) : null
+    if (cloudWords && cloudWords.length >= words.length) words = cloudWords
+  } catch (e) { /* sin conexión: se usa la lista local */ }
+  words = words.slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
   const counts = {}
   words.forEach((w) => { counts[w.category] = (counts[w.category] || 0) + 1 })
   const c = prof.challenge || {}
