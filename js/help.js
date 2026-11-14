@@ -7,6 +7,8 @@
  * Firebase, ver README).
  */
 const APP_VERSION = '2026.11.29'
+// Versión actual de la app (el ?v= con que se cargó), para marcar quién usa una versión vieja.
+const CURRENT_V = new URL(import.meta.url).searchParams.get('v') || ''
 const COOLDOWN_MS = 60 * 1000
 const app = window.PalavrasApp
 const $ = (id) => document.getElementById(id)
@@ -203,9 +205,11 @@ async function loadUsers () {
 
 function ago (ms) {
   if (!ms) return '—'
-  const days = Math.floor((Date.now() - ms) / 864e5)
-  if (days <= 0) return 'hoy'
-  if (days === 1) return 'ayer'
+  const d = new Date(ms)
+  const time = d.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })
+  const days = Math.floor((new Date().setHours(0, 0, 0, 0) - new Date(ms).setHours(0, 0, 0, 0)) / 864e5)
+  if (days <= 0) return 'hoy ' + time
+  if (days === 1) return 'ayer ' + time
   if (days < 30) return 'hace ' + days + ' días'
   return new Date(ms).toLocaleDateString('es')
 }
@@ -248,11 +252,12 @@ function renderUsers () {
           'Registro: ' + (u.joinedAt ? new Date(u.joinedAt).toLocaleDateString('es') : '—') +
           ' · Última visita: ' + ago(u.lastSeen) +
           ' · ' + (typeof u.wordCount === 'number' ? u.wordCount + ' palabras' : 'palabras: —') +
-          ' · ' + (c.ok || 0) + ' pts' })
+          ' · ' + (c.ok || 0) + ' pts' +
+          ' · versión ' + (u.appVersion ? u.appVersion + (u.appVersion === CURRENT_V ? ' ✓' : ' (vieja)') : 'vieja') })
       ])
     ])
   }))
-  $('users-note').textContent = users.length && !list.length ? 'Nadie coincide con la búsqueda.' : (users.some((u) => !u.lastSeen) ? 'Algunos datos («—») aparecen cuando el usuario vuelve a abrir la app.' : '')
+  $('users-note').textContent = users.length && !list.length ? 'Nadie coincide con la búsqueda.' : (users.some((u) => u.appVersion !== CURRENT_V) ? 'Quien figura con «versión vieja» todavía no abrió la versión actual: sus datos (por ejemplo, la cantidad de palabras) se actualizan cuando la abra.' : '')
 }
 
 function renderInbox () {

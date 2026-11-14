@@ -12,6 +12,8 @@
  * Si no hay configuración (js/firebase-config.js), este módulo no hace nada.
  */
 const FIREBASE_VERSION = '10.12.2'
+// Versión de la app (el número ?v= con que se cargó este archivo), para el panel de administración.
+const APP_VERSION = new URL(import.meta.url).searchParams.get('v') || '?'
 const PUSH_DELAY_MS = 1500
 const MAX_DOC_BYTES = 900 * 1024 // Firestore admite hasta 1 MiB por documento
 const config = window.FIREBASE_CONFIG
@@ -312,13 +314,14 @@ async function init () {
     const key = 'palabras-pt:actividad'
     const today = user.uid + ':' + new Date().toISOString().slice(0, 10)
     const count = app.getWords().length
+    const today2 = today + ':v' + APP_VERSION // con una versión nueva se vuelve a registrar
     let seenToday = false
-    try { seenToday = localStorage.getItem(key) === today } catch (e) {}
+    try { seenToday = localStorage.getItem(key) === today2 } catch (e) {}
     if (seenToday && !force && publishedCount(user.uid) === count) return
     try {
-      await fs.setDoc(fs.doc(db, 'profiles', user.uid), { lastSeen: Date.now(), wordCount: count }, { merge: true })
+      await fs.setDoc(fs.doc(db, 'profiles', user.uid), { lastSeen: Date.now(), wordCount: count, appVersion: APP_VERSION }, { merge: true })
       try {
-        localStorage.setItem(key, today)
+        localStorage.setItem(key, today2)
         localStorage.setItem(COUNT_KEY, JSON.stringify({ uid: user.uid, n: count }))
       } catch (e) {}
     } catch (err) {
